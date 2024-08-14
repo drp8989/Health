@@ -1,15 +1,18 @@
 package com.JustHealth.Health.Service;
 
+
 import com.JustHealth.Health.DTO.PurchaseDTO;
+import com.JustHealth.Health.Entity.Distributor;
 import com.JustHealth.Health.Entity.Inventory;
 import com.JustHealth.Health.Entity.Purchase;
 import com.JustHealth.Health.Entity.PurchaseInventory;
-import com.JustHealth.Health.Repository.BatchRepository;
-import com.JustHealth.Health.Repository.InventoryRepository;
-import com.JustHealth.Health.Repository.PurchaseInventoryRepository;
-import com.JustHealth.Health.Repository.PurchaseRepository;
+import com.JustHealth.Health.Repository.*;
 import jakarta.transaction.Transactional;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,206 +20,197 @@ import java.util.*;
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
 
-    @Autowired
-    private PurchaseRepository purchaseRepository;
 
-    @Autowired
-    private InventoryRepository inventoryRepository;
 
     @Autowired
-    private BatchRepository batchRepository;
+    PurchaseRepository purchaseRepository;
+
 
     @Autowired
-    private PurchaseInventoryRepository purchaseInventoryRepository;
+    InventoryRepository inventoryRepository;
+
+    @Autowired
+    BatchRepository batchRepository;
+
+    @Autowired
+    PurchaseInventoryRepository purchaseInventoryRepository;
+
+    @Autowired
+    DistributorRepository distributorRepository;
 
 
-    @Override
-    @Transactional
-    public Purchase createPurchase(PurchaseDTO purchaseDTO) {
-
-        Purchase savedPurchase = new Purchase();
-
-        savedPurchase.setBillDate(purchaseDTO.getBillDate());
-        savedPurchase.setDueDate(purchaseDTO.getDueDate());
-
-        List<Integer> inventoryIds = purchaseDTO.getInventoryPurchaseProducts();
-        List<Integer> inventoryQTY = purchaseDTO.getInventoryPurchaseProductsQTY();
-
-        Integer totalItems=0;
-        Integer totalAmount=0;
-        Integer baseAmount=0;
+    @Autowired
+    DistributorService distributorService;
 
 
-        if (inventoryIds.size() != inventoryQTY.size()) {
-            throw new RuntimeException("Product IDs and Quantities sizes do not match");
-        }
-
-        List<PurchaseInventory> purchaseInventories = new ArrayList<>();
-        List<Inventory> inventories=new ArrayList<>();
-
-        for (int i = 0; i < inventoryIds.size(); i++) {
-            Integer id = inventoryIds.get(i);
-            Integer quantity = inventoryQTY.get(i);
-
-            Inventory inventory = inventoryRepository.findById(Long.valueOf(id)).orElse(null);
-            inventories.add(inventory);
-
-            if (inventory != null) {
-
-                Integer batchPTR=inventory.getInventoryBatch().getLast().getBatchPTR();
-                Integer batchQtyStock=inventory.getInventoryBatch().getLast().getQuantityInStock();
-                inventory.getInventoryBatch().getLast().setQuantityInStock(batchQtyStock+quantity);
-                Integer GST=inventory.getGST();
-
-                totalItems=totalItems+quantity;
-                baseAmount=batchPTR*quantity;
-                totalAmount=totalAmount+(baseAmount+(batchPTR*GST/100));
-
-                PurchaseInventory purchaseInventory = new PurchaseInventory();
-                purchaseInventory.setInventory(inventory);
-                purchaseInventory.setQuantity(quantity);
-                purchaseInventory.setPurchase(savedPurchase);
-                purchaseInventories.add(purchaseInventory);
-                purchaseInventoryRepository.save(purchaseInventory);
-            }
-        }
-
-        savedPurchase.setPurchaseInventories(purchaseInventories);
-        savedPurchase.setTotalAmount(totalAmount);
-        savedPurchase.setTotalItems(totalItems);
-        savedPurchase.setPurchasePaymentType(Purchase.paymentType.valueOf(purchaseDTO.getPurchasePaymentType()));
-        purchaseRepository.save(savedPurchase);
-
-
-//        purchaseRepository.save(savedPurchase);
-//
-//        for (int i=0;i<inventories.size();i++){
-//            PurchaseInventory purchaseInventory=new PurchaseInventory();
-////            purchaseInventory.setPurchase(savedPurchase);
-//            purchaseInventory.setInventory(inventories.get(i));
-//            purchaseInventory.setQuantity(inventoryQTY.get(i));
-//            purchaseInventoryRepository.save(purchaseInventory);
-//            purchaseInventories.add(purchaseInventory);
-//        }
-//        savedPurchase.setPurchaseInventories(purchaseInventories);
-//        purchaseRepository.save(savedPurchase);
-
-        return savedPurchase;
-
+//    @Override
+//    @Transactional
+//    public Purchase createPurchase(PurchaseDTO purchaseDTO) throws Exception {
 //
 //        Purchase savedPurchase = new Purchase();
+//
 //        savedPurchase.setBillDate(purchaseDTO.getBillDate());
 //        savedPurchase.setDueDate(purchaseDTO.getDueDate());
 //
 //        List<Integer> inventoryIds = purchaseDTO.getInventoryPurchaseProducts();
 //        List<Integer> inventoryQTY = purchaseDTO.getInventoryPurchaseProductsQTY();
 //
+//        List<Purchase> purchases=new ArrayList<>();
+//        Integer totalItems=0;
+//        Integer totalAmount=0;
+//        Integer baseAmount=0;
+//
+//
 //        if (inventoryIds.size() != inventoryQTY.size()) {
 //            throw new RuntimeException("Product IDs and Quantities sizes do not match");
 //        }
 //
-//        int totalItems = 0;
-//        int totalAmount = 0;
-//
 //        List<PurchaseInventory> purchaseInventories = new ArrayList<>();
+//        List<Inventory> inventories=new ArrayList<>();
 //
 //        for (int i = 0; i < inventoryIds.size(); i++) {
 //            Integer id = inventoryIds.get(i);
 //            Integer quantity = inventoryQTY.get(i);
 //
-//            Inventory inventory = inventoryRepository.findById(Long.valueOf(id)).orElseThrow(() -> new RuntimeException("Inventory not found"));
+//            Inventory inventory = inventoryRepository.findById(Long.valueOf(id)).orElse(null);
+//            inventories.add(inventory);
 //
-//            Integer batchPTR = inventory.getInventoryBatch().getLast().getBatchPTR();
-//            Integer batchQtyStock = inventory.getInventoryBatch().getLast().getQuantityInStock();
-//            inventory.getInventoryBatch().getLast().setQuantityInStock(batchQtyStock + quantity);
-//            Integer GST = inventory.getGST();
+//            if (inventory != null) {
 //
-//            totalItems += quantity;
-//            int baseAmount = batchPTR * quantity;
-//            totalAmount += baseAmount + (baseAmount * GST / 100);
+//                Integer batchPTR=inventory.getInventoryBatch().getLast().getBatchPTR();
+//                Integer batchQtyStock=inventory.getInventoryBatch().getLast().getQuantityInStock();
+//                inventory.getInventoryBatch().getLast().setQuantityInStock(batchQtyStock+quantity);
+//                Integer GST=inventory.getGST();
 //
-//            PurchaseInventory purchaseInventory = new PurchaseInventory();
-//            purchaseInventory.setInventory(inventory);
-//            purchaseInventory.setQuantity(quantity);
-//            purchaseInventory.setPurchase(savedPurchase);
-//            purchaseInventories.add(purchaseInventory);
+//                totalItems=totalItems+quantity;
+//                baseAmount=batchPTR*quantity;
+//                totalAmount=totalAmount+(baseAmount+(batchPTR*GST/100));
+//
+//                PurchaseInventory purchaseInventory = new PurchaseInventory();
+//                purchaseInventory.setInventory(inventory);
+//                purchaseInventory.setQuantity(quantity);
+//                purchaseInventory.setPurchase(savedPurchase);
+//                purchaseInventories.add(purchaseInventory);
+//                purchaseInventoryRepository.save(purchaseInventory);
+//            }
+//        }
+//        Optional<Distributor> distributor=distributorRepository.findById(Long.valueOf(purchaseDTO.getPurchaseDistributor()));
+//        if(distributor.isEmpty()){
+//            throw new Exception("Distributor not found");
 //        }
 //
+//        savedPurchase.setPurchaseDistributor(distributor.get());
+//        savedPurchase.setPurchaseInventories(purchaseInventories);
 //        savedPurchase.setTotalAmount(totalAmount);
 //        savedPurchase.setTotalItems(totalItems);
 //        savedPurchase.setPurchasePaymentType(Purchase.paymentType.valueOf(purchaseDTO.getPurchasePaymentType()));
-//        savedPurchase.setPurchaseInventories(purchaseInventories);
 //
 //        purchaseRepository.save(savedPurchase);
-//        purchaseInventoryRepository.saveAll(purchaseInventories); // Save all purchase inventories in one go
 //
+//        purchases.add(savedPurchase);
+//
+//        distributor.get().getPurchase().add(savedPurchase);
+//
+//
+//
+//        if(Objects.equals(purchaseDTO.getPurchasePaymentType(), "CREDIT")){
+//            Integer accountBalance=distributor.get().getDistributorAccountBalance();
+//            distributor.get().setDistributorAccountBalance(savedPurchase.getTotalAmount()+accountBalance);
+//
+//        }
+//        distributorRepository.save(distributor.get());
 //        return savedPurchase;
+//
+//
+//    }
 
 
 
-//        purchaseRepository.save(savedPurchase);
-//
-//        for(PurchaseInventory purchaseInventory: purchaseInventories){
-//            PurchaseInventory purchaseInventory1=new PurchaseInventory();
-//
-//            purchaseInventoryRepository.save(purchaseInventory1);
-//        };
+
+    @Override
+    @Transactional
+    public Purchase createPurchase(PurchaseDTO purchaseDTO) throws Exception {
 
 
 
-//        Integer total = 0;
-//        Integer items = 0;
-//
-//        Map<Integer, Integer> map = new HashMap<>();
-//        List<Integer> productIds = purchaseDTO.getInventoryPurchaseProducts();
-//        List<Integer> productQTY = purchaseDTO.getInventoryPurchaseProductsQTY();
-//
-//        if (productIds.size() != productQTY.size()) {
-//            throw new RuntimeException("Product IDs and Quantities sizes do not match");
-//        }
-//
-//        for (int i = 0; i < productIds.size(); i++) {
-//            map.put(productIds.get(i), productQTY.get(i));
-//        }
-//
-//        List<PurchaseInventory> purchaseInventories = new ArrayList<>();
-//
-//        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-//            Inventory inventory = inventoryRepository.findByProductId(entry.getKey());
-//            Batch batch = inventory.getInventoryBatch().getLast();
-//            Integer ptr = batch.getBatchPTR();
-//            Integer qty = entry.getValue();
-//            items += qty;
-//            Integer baseValue = ptr * qty;
-//            total += baseValue;
-//
-//            PurchaseInventory purchaseInventory = new PurchaseInventory();
-//            purchaseInventory.setInventory(inventory);
-//            purchaseInventory.setQuantity(qty);
-//            purchaseInventory.setPurchase(purchase);
-//            purchaseInventories.add(purchaseInventory);
-//
-//            // Save purchaseInventory
-//            purchaseInventoryRepository.save(purchaseInventory);
-//        }
-//
-//        purchase.setTotalAmount(total);
-//        purchase.setTotalItems(items);
-//        purchase.setPurchasePaymentType(Purchase.paymentType.valueOf(purchaseDTO.getPurchasePaymentType()));
-//
-//        purchase = purchaseRepository.save(purchase); // Save purchase and get managed entity
-//
-//        // Set purchaseInventories in purchase
-//        purchase.setPurchaseInventories(purchaseInventories);
+        Purchase savedPurchase = new Purchase();
 
-//        return purchaseRepository.save(purchase);
+        savedPurchase.setBillDate(purchaseDTO.getBillDate());
+        savedPurchase.setDueDate(purchaseDTO.getDueDate());
+
+        //Getting List of integer for products in purchase with their respective quantity.
+        List<Integer> inventoryIds = purchaseDTO.getInventoryPurchaseProducts();
+        List<Integer> inventoryQTY = purchaseDTO.getInventoryPurchaseProductsQTY();
+
+        if (inventoryIds.size() != inventoryQTY.size()) {
+            throw new RuntimeException("Product IDs and Quantities sizes do not match");
+        }
+
+        List<PurchaseInventory> purchaseInventories = new ArrayList<>();
+        Integer totalItems = 0;
+        Integer totalAmount = 0;
+        Integer baseAmount = 0;
+
+        //Mapping Inventory items with entered quantity to purchaseinventory table.
+        //Or, Adding Product to Inventory and updating batch data
+        for (int i = 0; i < inventoryIds.size(); i++) {
+            Integer id = inventoryIds.get(i);
+            Integer quantity = inventoryQTY.get(i);
+
+            Inventory inventory = inventoryRepository.findById(Long.valueOf(id)).orElseThrow(() -> new Exception("Inventory not found"));
+
+            Integer batchPTR = inventory.getInventoryBatch().getLast().getBatchPTR();
+            Integer batchQtyStock = inventory.getInventoryBatch().getLast().getQuantityInStock();
+            inventory.getInventoryBatch().getLast().setQuantityInStock(batchQtyStock + quantity);
+            Integer GST = inventory.getGST();
+
+            totalItems += quantity;
+            baseAmount = batchPTR * quantity;
+            totalAmount += (baseAmount + (batchPTR * GST / 100));
+
+            PurchaseInventory purchaseInventory = new PurchaseInventory();
+            purchaseInventory.setInventory(inventory);
+            purchaseInventory.setQuantity(quantity);
+//            purchaseInventory.setPurchase(savedPurchase);  // Set the savedPurchase here
+            purchaseInventories.add(purchaseInventory);
+        }
+
+        Distributor distributor=distributorService.findById(purchaseDTO.getPurchaseDistributor());
+
+        savedPurchase.setPurchaseDistributor(distributor);
+        savedPurchase.setPurchaseInventories(purchaseInventories);
+        savedPurchase.setTotalAmount(totalAmount);
+        savedPurchase.setTotalItems(totalItems);
+        savedPurchase.setPurchasePaymentType(Purchase.paymentType.valueOf(purchaseDTO.getPurchasePaymentType()));
+
+        savedPurchase = purchaseRepository.save(savedPurchase); // Save the purchase first to generate an ID
+
+        for (PurchaseInventory purchaseInventory : purchaseInventories) {
+            purchaseInventory.setPurchase(savedPurchase); // Ensure the purchase is set after saving
+            purchaseInventoryRepository.save(purchaseInventory); // Save each PurchaseInventory
+        }
+
+        distributor.getPurchase().add(savedPurchase);
+
+        if (Objects.equals(purchaseDTO.getPurchasePaymentType(), "CREDIT")) {
+            Integer accountBalance = distributor.getDistributorAccountBalance();
+            distributor.setDistributorAccountBalance(savedPurchase.getTotalAmount() + accountBalance);
+        }
+
+        distributorRepository.save(distributor);
+        return savedPurchase;
     }
 
     @Override
-    @Transactional()
+    public Page<Purchase> findAllPurchasePaginated(int page,int size) throws Exception {
+        Pageable pageable= PageRequest.of(page, size);
+        return purchaseRepository.findAll(pageable);
+    }
+
+
+    @Override
     public List<Purchase> findAllPurchase() throws Exception {
         try {
-            System.out.println(purchaseRepository.findAll());
             return purchaseRepository.findAll();
         } catch (Exception e) {
 
@@ -225,13 +219,13 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public Optional<Purchase> findPurchaseById(Long id) throws Exception {
+    public Purchase purchaseById(Long id) throws Exception {
         Optional<Purchase> purchase=purchaseRepository.findById(id);
 
         if(purchase.isEmpty()){
             throw new Exception("ID doesn't exist");
         }
-        return purchase;
+        return purchase.get();
 
     }
 
@@ -244,7 +238,33 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+    public List<PurchaseInventory> getPurchaseInventoryByPurchaseId(Long id) throws Exception {
+        Optional<Purchase> purchase=purchaseRepository.findById(id);
+        if(purchase.isEmpty()){
+            throw new Exception("Cant find Purchase");
+        }
+        List<PurchaseInventory> inventories=purchase.get().getPurchaseInventories();
+        return inventories;
+
+    }
+
+    @Override
     public Purchase updatePurchaseById(PurchaseDTO purchaseDTO, Long id) throws Exception {
-        return null;
+
+        Purchase updatedPurchase =purchaseById(id);
+
+        if(purchaseDTO.getBillDate() != null){
+            updatedPurchase.setBillDate(purchaseDTO.getBillDate());
+        }
+        if(purchaseDTO.getDueDate() != null){
+            updatedPurchase.setBillDate(purchaseDTO.getDueDate());
+        }
+        if(purchaseDTO.getInventoryPurchaseProducts()!=null){
+//            purchaseDTO.getInventoryPurchaseProducts().st
+        }
+
+
+
+        return updatedPurchase;
     }
 }

@@ -18,7 +18,7 @@ public class PurchaseDTO {
 //    private Integer totalAmount;
 //    private Integer totalItems;
 //
-//    private Integer purchaseDistributor;
+    private Long purchaseDistributor;
     private String purchasePaymentType;
 
 }

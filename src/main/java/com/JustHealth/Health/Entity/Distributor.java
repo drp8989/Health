@@ -1,20 +1,23 @@
 package com.JustHealth.Health.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
+
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name="distributor")
+@Builder
 public class Distributor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "distributor_store_name")
@@ -36,11 +39,19 @@ public class Distributor {
     @Column(name = "distributor_address")
     private String distributorAddress;
 
+    @Column(name = "distributor_account_balance")
+    private Integer distributorAccountBalance;
 
-    @OneToOne
-    private Purchase purchase;
+    @OneToMany(mappedBy = "purchaseDistributor" ,cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
+    @ToString.Exclude
+    @JsonManagedReference
+    private List<Purchase> purchase;
 
 
 
+    @JsonManagedReference
+    public List<Purchase> getPurchase() {
+        return purchase;
+    }
 
 }

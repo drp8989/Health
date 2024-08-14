@@ -1,7 +1,6 @@
 package com.JustHealth.Health.Response;
 
 import com.JustHealth.Health.Entity.ADMIN_ROLE;
-import com.JustHealth.Health.Entity.AdminUser;
 import lombok.Data;
 
 @Data

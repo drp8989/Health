@@ -34,8 +34,12 @@ public class Inventory {
     @Column(name = "max_qty")
     private Integer maxQTY;
 
-    @Column(name = "GST")
-    private Integer GST=12;
+    @Column(name = "gst")
+    private Integer GST=0;
+
+    //Sum of all batch quantities.
+    @Column(name = "current_stock")
+    private Integer currentStock;
 
     @OneToOne
     @JoinColumn(name = "inventory_product_id")
@@ -49,17 +53,11 @@ public class Inventory {
     @EqualsAndHashCode.Exclude
     private List<Batch> inventoryBatch;
 
-//    @ManyToOne()
-//    @ToString.Exclude
-//    @EqualsAndHashCode.Exclude
-//    @JoinColumn(name = "purchase_inventory_id")
-//    private Purchase inventoryPurchase;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private InventoryLedger inventoryLedger;
 
-    @ManyToOne()
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @JoinColumn(name = "inventory_invoice_id")
-    private Invoice invoice;
+
 
 
 }

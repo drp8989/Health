@@ -26,4 +26,7 @@ public class User {
     @Column(name = "customer_password")
     private String Password;
 
+    @Column(name = "customer_account_balance")
+    private Integer customerAccountBalance;
+
 }

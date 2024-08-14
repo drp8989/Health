@@ -12,8 +12,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(medicineNotFoundException.class)
-    public ResponseEntity<ErrorMessage> medicineNotFoundException(medicineNotFoundException exception, WebRequest request){
+    @ExceptionHandler(MedicineNotFoundException.class)
+    public ResponseEntity<ErrorMessage> medicineNotFoundException(MedicineNotFoundException exception, WebRequest request){
+        ErrorMessage message=new ErrorMessage(HttpStatus.NOT_FOUND,exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
+
+
+    @ExceptionHandler(MedicineCompositionNotFoundException.class)
+    public ResponseEntity<ErrorMessage> medicineCompositionNotFound(MedicineCompositionNotFoundException exception,WebRequest request){
+        ErrorMessage message=new ErrorMessage(HttpStatus.NOT_FOUND,exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorMessage> productNotFoundException(ProductNotFoundException exception,WebRequest webRequest){
         ErrorMessage message=new ErrorMessage(HttpStatus.NOT_FOUND,exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }

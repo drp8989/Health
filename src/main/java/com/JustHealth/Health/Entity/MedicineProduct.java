@@ -1,14 +1,11 @@
 package com.JustHealth.Health.Entity;
 
-
-import com.JustHealth.Health.DTO.MedicineProductDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 
 
 
@@ -19,7 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 @DiscriminatorValue("Medicine")
-public class MedicineProduct extends Product {
+//public class MedicineProduct extends Product
+public class MedicineProduct extends Product{
 
     @Column(name = "medicine_rx")
     private Boolean medicineRx;

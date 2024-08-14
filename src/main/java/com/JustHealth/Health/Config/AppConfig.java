@@ -1,20 +1,30 @@
 package com.JustHealth.Health.Config;
 
 
+
+import com.JustHealth.Health.Service.AdminUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -24,10 +34,18 @@ import java.util.Collections;
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class AppConfig {
 
-    @Autowired
-    DataSource dataSource;
+
+
+    private final AdminUserDetailsService adminUserDetailsService;
+
+//
+//    @Autowired
+//    DataSource dataSource;
 
 //    @Override
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception{
@@ -48,34 +66,55 @@ public class AppConfig {
 //    }
 
 
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception{
-        http.authorizeHttpRequests(authorize->
-                        authorize.anyRequest().permitAll()
-
-
-                )
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors->cors.configurationSource(corsConfigurationSource));
-
-        return http.build();
-    }
-
-
 //    @Bean
-//    SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception{
-//        http.authorizeHttpRequests(authorize->
-//                        authorize.requestMatchers("/api/admin/**").hasRole("ADMIN")
-//                                .anyRequest().permitAll()
-//                                .anyRequest().authenticated()
+//    @Order(1)
+//    public  SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception{
+////        http.authorizeHttpRequests(authorize->
+////                        authorize.anyRequest().permitAll()
+////                                .requestMatchers("api/admin").hasRole("ADMIN")
+////
+////
+////                )
+////                .csrf(AbstractHttpConfigurer::disable)
+////                .cors(cors->cors.configurationSource(corsConfigurationSource));
 //
-//
-//                )
+//        http
+//                .securityMatcher(new AntPathRequestMatcher("/api/**"))
 //                .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors->cors.configurationSource(corsConfigurationSource));
+//                .authorizeHttpRequests(auth->auth.anyRequest().authenticated())
+//                .userDetailsService(adminUserDetailsService)
+//                .formLogin(Customizer.withDefaults())
+//                .httpBasic(Customizer.withDefaults());
 //
 //        return http.build();
 //    }
+
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception{
+        try {
+            http.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(authorize->
+                                    authorize
+//                                            .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                                            .anyRequest().permitAll()
+//                                .anyRequest().authenticated()
+
+
+                    )
+                    .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .cors(cors->cors.configurationSource(corsConfigurationSource))
+                    .headers(headers->headers
+                            .httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable));
+
+            return http.build();
+        }catch (Exception e){
+            System.out.println(""+e);
+            throw e;
+        }
+
+    }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

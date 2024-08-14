@@ -16,7 +16,7 @@ public class AdminUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "admin_name")
+    @Column(name = "admin_name",unique = true, nullable = false)
     private String adminName;
 
     @Column(name = "admin_username")
@@ -28,9 +28,12 @@ public class AdminUser {
     @Column(name = "admin_password")
     private String adminPassword;
 
-
+//    will use later
     @Enumerated(EnumType.STRING)
     private ADMIN_ROLE role;
+
+//    @Column(name = "role")
+//    private String role;
 
 
 

@@ -1,5 +1,6 @@
 package com.JustHealth.Health.Entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,9 +16,8 @@ public class PurchaseInventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "purchase_id")
-    @JsonBackReference
     private Purchase purchase;
 
     @ManyToOne
@@ -26,4 +26,10 @@ public class PurchaseInventory {
 
     @Column(name = "product_qty")
     private Integer quantity;
+
+    @JsonBackReference
+    public Purchase getPurchase() {
+        return purchase;
+    }
+
 }

@@ -2,7 +2,7 @@ package com.JustHealth.Health.Config;
 
 public class JwtConstant {
 
-    public static final String SECRET_KEY = "DSAADSASDASDASDD";
+    public static final String SECRET_KEY = "DSAADSASDASDASDDdsadasdsadassaddsasdsdasa";
 
     public static final String JWT_HEADER = "Authorization";
 

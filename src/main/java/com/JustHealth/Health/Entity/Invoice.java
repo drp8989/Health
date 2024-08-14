@@ -1,13 +1,15 @@
 package com.JustHealth.Health.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.lang.model.element.Name;
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -24,10 +26,8 @@ public class Invoice {
     private Integer id;
 
     @Column(name = "bill_date")
-    private Date bill_date;
+    private Date billDate;
 
-    @Column(name="quantity")
-    private Integer qty;
 
     @Column(name = "total_items")
     private Integer totalItems;
@@ -42,15 +42,21 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     private orderType InvoiceOrderType;
 
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<InvoiceInventory> invoiceInventories;
 
-//    Invoice can have many products from inventory
-    @OneToMany(mappedBy = "invoice")
-    private List<Inventory> products;
+////    Invoice can have many products from inventory
+//    @OneToMany(mappedBy = "invoice")
+//    private List<Inventory> products;
 
 //    @ManyToOne
 //    private Inventory invoiceInventory;
 
 
+    @JsonManagedReference
+    public List<InvoiceInventory> getInvoiceInventories(){
+        return invoiceInventories;
+    }
 
 
 

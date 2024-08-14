@@ -1,6 +1,7 @@
 package com.JustHealth.Health.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -27,33 +28,18 @@ public class Purchase {
     @Column(name = "due_date")
     private Date dueDate;
 
-//    @Column(name="quantity")
-//    private Integer qty;
-
+    //To Be calculated
     @Column(name="total_amount")
     private Integer totalAmount;
 
+    //To Be calculated
     @Column(name = "total_items")
     private Integer totalItems;
 
-//
-//    @ElementCollection
-//    @CollectionTable(name = "my_purchase_product_qty", joinColumns = @JoinColumn(name = "product_quantity_purchase_id"))
-//    @Column(name="product_qty")
-//    private List<Integer> qty;
-
-    //Relationships
-//    @OneToMany()
-//    private List<Inventory> purchaseProduct;
-
-
-    @OneToMany(mappedBy = "purchase",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
-    @JsonManagedReference
-    @JsonIgnore
+    @OneToMany(mappedBy = "purchase",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.EAGER)
     private List<PurchaseInventory> purchaseInventories;
 
-    @OneToOne
-    @JsonIgnore
+    @ManyToOne()
     private Distributor purchaseDistributor;
 
     @Column(name = "purchase_payment_type")
@@ -61,11 +47,30 @@ public class Purchase {
     private paymentType purchasePaymentType;
 
 
+
+
     public enum paymentType{
         CASH,
         CREDIT,
         UPI,
+        RTGS,
+        NEFT,
     };
+
+
+
+    @JsonManagedReference
+    public List<PurchaseInventory> getPurchaseInventories() {
+        return purchaseInventories;
+    }
+
+
+    @JsonBackReference
+    public Distributor getPurchaseDistributor() {
+        return purchaseDistributor;
+    }
+
+
 
 
 

@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @DiscriminatorValue("OTC")
+//public class OTCProduct extends Product
 public class OTCProduct extends Product{
 
 

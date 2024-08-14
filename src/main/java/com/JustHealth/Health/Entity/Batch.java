@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CollectionId;
 import org.hibernate.annotations.Fetch;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -13,6 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Batch {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +34,7 @@ public class Batch {
     private Integer quantityInStock;
 
     @Column(name = "batch_expiry")
-    private Date expiryDate;
+    private LocalDate expiryDate;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "inventory_batch_id")

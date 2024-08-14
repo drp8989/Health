@@ -10,18 +10,19 @@ import java.util.Optional;
 @Data
 public class InvoiceDTO {
 
-    private Date bill_date;
+    private Date billDate;
 
     //Description To be derived from entry
-    private Integer qty;
-    private Integer totalItems;
-    private Integer netTotal;
+//    private Integer qty;
+//    private Integer totalItems;
+//    private Integer netTotal;
     //
 
     private String invoicePaymentType;
     private String invoiceOrderType;
 
-    private List<Inventory> products;
+    private List<Integer> invoiceProducts;
+    private List<Integer> invoiceProductsQTY;
 
 
 
