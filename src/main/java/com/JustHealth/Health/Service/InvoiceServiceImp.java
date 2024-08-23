@@ -1,19 +1,21 @@
 package com.JustHealth.Health.Service;
 
 import com.JustHealth.Health.DTO.InvoiceDTO;
-import com.JustHealth.Health.Entity.Inventory;
-import com.JustHealth.Health.Entity.Invoice;
-import com.JustHealth.Health.Entity.InvoiceInventory;
-import com.JustHealth.Health.Entity.PurchaseInventory;
+import com.JustHealth.Health.DTO.InvoiceResponseDTO;
+import com.JustHealth.Health.DTO.SalesProduct;
+import com.JustHealth.Health.Entity.*;
+import com.JustHealth.Health.Repository.BatchRepository;
 import com.JustHealth.Health.Repository.InventoryRepository;
 import com.JustHealth.Health.Repository.InvoiceInventoryRepository;
 import com.JustHealth.Health.Repository.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,54 +31,101 @@ public class InvoiceServiceImp implements InvoiceService{
     @Autowired
     private InvoiceInventoryRepository invoiceInventoryRepository;
 
+    @Autowired
+    private InventoryService inventoryService;
+
+    @Autowired
+    private BatchRepository batchRepository;
+
+
+    public Integer calculateCurrentQTYinStock(List<Batch> batches){
+        //Used to update qty in inventory
+        Integer totalQTY = 0;
+        for (Batch batch:batches){
+            totalQTY+=batch.getQuantityInStock();
+        }
+        return totalQTY;
+    }
+
+
     @Override
     @Transactional
-    public Invoice createInvoice(@RequestBody InvoiceDTO reqInvoiceDTO) throws Exception {
+    public InvoiceResponseDTO createInvoice(@RequestBody InvoiceDTO reqInvoiceDTO) throws Exception {
 
-        Invoice invoice = new Invoice();
+        LocalDate billDate=reqInvoiceDTO.getBillDate();
+        String customerName=reqInvoiceDTO.getCustomerName();
+        String billingFor=reqInvoiceDTO.getBillingFor();
+        String invoicePaymentType=reqInvoiceDTO.getInvoicePaymentType();
 
-        invoice.setBillDate(reqInvoiceDTO.getBillDate());
+        //Pick-Up or Delivery
+        String invoiceOrderType= reqInvoiceDTO.getInvoiceOrderType();
 
-        List<Integer> invoiceProducts = reqInvoiceDTO.getInvoiceProducts();
-        List<Integer> invoiceProductsQTY = reqInvoiceDTO.getInvoiceProductsQTY();
+        List<SalesProduct> salesProductList=reqInvoiceDTO.getSalesProducts();
+
+        Float totalAmount= 0.00F;
         Integer totalItems=0;
-        Integer totalAmount=0;
-        Integer baseAmount=0;
 
-        List<InvoiceInventory> invoiceInventories = new ArrayList<>();
-        List<Inventory> inventories = new ArrayList<>();
+        for(SalesProduct salesProduct:salesProductList){
+            Long productId= salesProduct.getProductId();
+            String batch= salesProduct.getBatch();
+            Integer productSalesQTY= salesProduct.getProductSalesQTY();
+            Integer discount=salesProduct.getDiscount();
 
-        for (int i = 0; i < invoiceProducts.size(); i++) {
-            Integer id = invoiceProducts.get(i);
-            Integer quantity = invoiceProductsQTY.get(i);
+            Inventory inventory=inventoryService.getInventoryFromProduct(productId);
 
-            Inventory inventory = inventoryRepository.findById(Long.valueOf(id)).orElse(null);
-            inventories.add(inventory);
+            if(inventory==null){
+                throw new Exception("Inventory is not in the stock");
+            }else{
 
-            if(inventory!=null){
-                Integer batchMRP=inventory.getInventoryBatch().getLast().getBatchMRP();
-                Integer batchQtyStock=inventory.getInventoryBatch().getLast().getQuantityInStock();
-                inventory.getInventoryBatch().getLast().setQuantityInStock(batchQtyStock-quantity);
-                Integer GST=inventory.getGST();
-                totalItems=totalItems+quantity;
-                baseAmount=batchMRP*quantity;
-                totalAmount=totalAmount+(baseAmount+(batchMRP*GST/100));
+                List<Batch> inventoryBatches=inventory.getInventoryBatch();
 
-                InvoiceInventory invoiceInventory= new InvoiceInventory();
+                // Find the matching batch
+                Batch matchingBatch = inventoryBatches.stream()
+                        .filter(batch1 -> batch.equals(batch1.getBatch()))
+                        .findFirst()
+                        .orElseThrow(() -> new Exception("Batch is not matching"));
+
+                if(matchingBatch==null){
+                    throw new Exception("Batch doesnt exist in inventory");
+                }
+                matchingBatch.setQuantityInStock(matchingBatch.getQuantityInStock()-productSalesQTY);
+                batchRepository.save(matchingBatch);
+
+                inventory.setCurrentStock(calculateCurrentQTYinStock(inventoryBatches));
+                inventoryRepository.save(inventory);
+
+                List<InvoiceInventory> invoiceInventories=new ArrayList<>();
+                InvoiceInventory invoiceInventory=new InvoiceInventory();
                 invoiceInventory.setInventory(inventory);
-                invoiceInventory.setInvoice(invoice);
-                invoiceInventory.setQuantity(quantity);
+                invoiceInventory.setQuantity(productSalesQTY);
+
                 invoiceInventories.add(invoiceInventory);
-                invoiceInventoryRepository.save(invoiceInventory);
+
+                totalItems+=productSalesQTY;
+
+
+
+
+
+
+
+
+
+
+
             }
+            Invoice invoice=new Invoice();
+            invoice.setBillDate(billDate);
+            invoice.setTotalItems(totalItems);
+
 
         }
-        invoice.setInvoiceInventories(invoiceInventories);
-        invoice.setTotalItems(totalItems);
-        invoice.setNetTotal(totalAmount);
-        invoice.setInvoiceOrderType(Invoice.orderType.valueOf(reqInvoiceDTO.getInvoiceOrderType()));
-        invoice.setInvoicePaymentType(Invoice.paymentType.valueOf(reqInvoiceDTO.getInvoicePaymentType()));
-        return invoiceRepository.save(invoice);
+
+
+        Invoice invoice=new Invoice();
+
+        return null;
+
     }
 //    @Override
 //    public List<Inventory> getInventoryByInvoiceId(Long invoiceId) {

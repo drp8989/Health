@@ -103,8 +103,9 @@ public class MedicineProductController{
 
 
     @DeleteMapping("/{id}")
-    private void deleteMedicine(@PathVariable Long id) throws Exception{
+    private ResponseEntity<?> deleteMedicine(@PathVariable Long id) throws Exception{
         medicineProductService.deleteMedicineProduct(id);
+        return new ResponseEntity<>("Delete successful", HttpStatus.OK);
     }
 
 

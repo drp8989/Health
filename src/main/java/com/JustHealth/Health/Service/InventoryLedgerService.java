@@ -10,5 +10,8 @@ public interface InventoryLedgerService {
     public Page<InventoryLedger> getLedger(int page,int size);
 
 
+    public Page<InventoryLedger> getLedgerByInventoryId(int page,int size,Long inventoryId);
+
+
 
 }

@@ -1,6 +1,7 @@
 package com.JustHealth.Health.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,7 @@ public class Distributor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "distributor_store_name")
     private String distributorStoreName;
@@ -40,11 +41,12 @@ public class Distributor {
     private String distributorAddress;
 
     @Column(name = "distributor_account_balance")
-    private Integer distributorAccountBalance;
+    private Float distributorAccountBalance;
 
-    @OneToMany(mappedBy = "purchaseDistributor" ,cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
+    @OneToMany(mappedBy = "purchaseDistributor",fetch = FetchType.EAGER)
     @ToString.Exclude
     @JsonManagedReference
+    @JsonIgnore
     private List<Purchase> purchase;
 
 

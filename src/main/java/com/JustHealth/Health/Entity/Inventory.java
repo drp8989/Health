@@ -17,7 +17,7 @@ public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "reorder_level")
     private Integer reorderLevel;
@@ -37,10 +37,27 @@ public class Inventory {
     @Column(name = "gst")
     private Integer GST=0;
 
+    @Column(name = "default_discount")
+    private Integer defaultDiscount;
+
+    @Column(name = "lock_discount")
+    private Boolean lockDiscount;
+
+    @Column(name = "accept_online_order")
+    private Boolean acceptOnlineOrder;
+
+    @Column(name = "margin")
+    private Float margin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_category")
+    private Category itemCategory;
+
     //Sum of all batch quantities.
     @Column(name = "current_stock")
     private Integer currentStock;
 
+//    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @OneToOne
     @JoinColumn(name = "inventory_product_id")
     @ToString.Exclude
@@ -53,11 +70,19 @@ public class Inventory {
     @EqualsAndHashCode.Exclude
     private List<Batch> inventoryBatch;
 
+
     @OneToOne(cascade = CascadeType.ALL)
     @JsonIgnore
     private InventoryLedger inventoryLedger;
 
-
+    public enum Category {
+        TOPICAL_GEL,
+        SYRUP,
+        TABLET,
+        CAPSULE,
+        INJECTION,
+        SUSPENSION,
+    }
 
 
 }

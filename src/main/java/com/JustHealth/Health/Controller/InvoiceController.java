@@ -19,7 +19,8 @@ public class InvoiceController {
     @PostMapping("/create")
     private Invoice createInvoice(@RequestBody InvoiceDTO req) throws Exception{
 
-        return invoiceService.createInvoice(req);
+        return null;
+//        return invoiceService.createInvoice(req);
 
     }
 }

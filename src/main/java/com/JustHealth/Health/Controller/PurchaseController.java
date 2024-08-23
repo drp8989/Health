@@ -2,6 +2,7 @@ package com.JustHealth.Health.Controller;
 
 
 import com.JustHealth.Health.DTO.PurchaseDTO;
+import com.JustHealth.Health.DTO.PurchaseResponeDTO;
 import com.JustHealth.Health.Entity.Purchase;
 import com.JustHealth.Health.Entity.PurchaseInventory;
 import com.JustHealth.Health.Response.ErrorMessage;
@@ -27,7 +28,7 @@ public class PurchaseController {
     public ResponseEntity<?> createPurchase(@RequestBody
                                              PurchaseDTO req) throws Exception {
         try {
-            Purchase purchase=purchaseService.createPurchase(req);
+            PurchaseResponeDTO purchase=purchaseService.createPurchase(req);
             return new  ResponseEntity<>(purchase, HttpStatus.CREATED );
 
         }catch (Exception e){
@@ -44,21 +45,20 @@ public class PurchaseController {
     }
 
 
-    @GetMapping("/getAll")
-    @Transactional
-    public ResponseEntity<List<Purchase>> findAllPurchase() {
-        try {
-            List<Purchase> purchases = purchaseService.findAllPurchase();
-            return ResponseEntity.ok(purchases);
-        } catch (Exception e) {
-            // Log the exception
-            e.printStackTrace();
-            ErrorMessage errorMessage=new ErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
-            ResponseEntity responseEntity = new ResponseEntity<>(errorMessage,HttpStatus.INTERNAL_SERVER_ERROR);
-            return responseEntity;
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+//    @GetMapping("/getAll")
+//    @Transactional
+//    public ResponseEntity<List<Purchase>> findAllPurchase() {
+//        try {
+//            List<Purchase> purchases = purchaseService.findAllPurchase();
+//            return ResponseEntity.ok(purchases);
+//        } catch (Exception e) {
+//            // Log the exception
+//            ErrorMessage errorMessage=new ErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+//            ResponseEntity responseEntity = new ResponseEntity<>(errorMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+//            return responseEntity;
+////            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Purchase> getById(@PathVariable Long id) throws Exception {
@@ -82,8 +82,15 @@ public class PurchaseController {
 
 
     @DeleteMapping("/{id}")
-    public void deletePurchase(@PathVariable Long id) throws Exception {
-         purchaseService.deletePurchaseById(id);
+    public ResponseEntity<?> deletePurchase(@PathVariable Long id) throws Exception {
+        try {
+            purchaseService.deletePurchaseById(id);
+            return new ResponseEntity<>("Deleted successfully",HttpStatus.OK);
+        }catch (Exception e){
+            ErrorMessage errorMessage=new ErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+            return new ResponseEntity<>(errorMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 

@@ -67,7 +67,7 @@ public class AppConfig {
 
 
 //    @Bean
-//    @Order(1)
+//    @OnlineOrder(1)
 //    public  SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception{
 ////        http.authorizeHttpRequests(authorize->
 ////                        authorize.anyRequest().permitAll()

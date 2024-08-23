@@ -29,14 +29,14 @@ public class InventoryLedger {
     private String ledgerTransaction;
 
     @Column(name="inventory_in")
-    private Float inventoryIn;
+    private Integer inventoryIn;
 
     @Column(name="inventory_out")
-    private Float inventoryOut;
+    private Integer inventoryOut;
 
     //Closing is calculated
     @Column(name = "closing")
-    private Float closing;
+    private Integer closing;
 
 //    @Column(name = "user_detail")
 //    private String userDetail;

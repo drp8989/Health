@@ -15,7 +15,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "customer_name")
     private String Name;
@@ -27,6 +27,6 @@ public class User {
     private String Password;
 
     @Column(name = "customer_account_balance")
-    private Integer customerAccountBalance;
+    private Float customerAccountBalance;
 
 }

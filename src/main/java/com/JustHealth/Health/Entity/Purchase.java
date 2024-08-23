@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -19,18 +20,21 @@ import java.util.List;
 public class Purchase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "bill_no")
+    private Integer billNo;
 
     @Column(name = "bill_date")
-    private Date billDate;
+    private LocalDate billDate;
 
     @Column(name = "due_date")
-    private Date dueDate;
+    private LocalDate dueDate;
 
     //To Be calculated
     @Column(name="total_amount")
-    private Integer totalAmount;
+    private Float totalAmount;
 
     //To Be calculated
     @Column(name = "total_items")

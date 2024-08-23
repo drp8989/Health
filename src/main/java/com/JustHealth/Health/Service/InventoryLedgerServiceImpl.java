@@ -23,4 +23,11 @@ public class InventoryLedgerServiceImpl implements InventoryLedgerService {
         Page<InventoryLedger> inventoryLedger=inventoryLedgerRepository.findAll(pageable);
         return inventoryLedger;
     }
+
+    @Override
+    public Page<InventoryLedger> getLedgerByInventoryId(int page, int size, Long inventoryId) {
+        Pageable pageable= PageRequest.of(page, size);
+        Page<InventoryLedger> inventoryLedger=inventoryLedgerRepository.findAll(pageable);
+        return inventoryLedger;
+    }
 }

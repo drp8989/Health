@@ -3,6 +3,7 @@ package com.JustHealth.Health.DTO;
 import com.JustHealth.Health.Entity.Inventory;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -10,21 +11,23 @@ import java.util.Optional;
 @Data
 public class InvoiceDTO {
 
-    private Date billDate;
-
     //Description To be derived from entry
 //    private Integer qty;
-//    private Integer totalItems;
-//    private Integer netTotal;
-    //
+
+
+
+    private LocalDate billDate;
+    private String customerName;
+    private String billingFor;
+
 
     private String invoicePaymentType;
     private String invoiceOrderType;
 
-    private List<Integer> invoiceProducts;
-    private List<Integer> invoiceProductsQTY;
+    private List<SalesProduct> salesProducts;
 
-
+    private Integer totalItems;
+    private Integer netTotal;
 
     public enum paymentType{
         CASH,

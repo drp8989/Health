@@ -11,7 +11,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Ledger {
+public class DistributorLedger {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -24,10 +24,10 @@ public class Ledger {
     private String voucher;
 
     @Column(name = "credit_balance")
-    private Integer creditBalance;
+    private Float creditBalance;
 
     @Column(name = "debit_balance")
-    private Integer debitBalance;
+    private Float debitBalance;
 
     @Column(name = "closing_balance")
     private Integer closingBalance;

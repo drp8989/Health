@@ -9,8 +9,8 @@ import java.util.Date;
 public class BatchDTO {
 
         private String batch;
-        private Integer batchPTR;
-        private Integer batchMRP;
+        private Float batchPTR;
+        private Float batchMRP;
         private Integer quantityInStock;
         private LocalDate expiryDate;
         private Integer inventoryId; // to reference the related Inventory

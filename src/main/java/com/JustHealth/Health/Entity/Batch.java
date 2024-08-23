@@ -25,10 +25,14 @@ public class Batch {
     private String Batch;
 
     @Column(name = "batch_ptr")
-    private Integer batchPTR;
+    private Float batchPTR;
 
     @Column(name = "batch_mrp")
-    private Integer batchMRP;
+    private Float batchMRP;
+
+    //LP is the price with GST(ptr+gst(Amount))
+    @Column(name = "batch_lp")
+    private Float batchLP;
 
     @Column(name = "batch_quantity_in_stock")
     private Integer quantityInStock;

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.lang.model.element.Name;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -23,10 +24,10 @@ public class Invoice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "bill_date")
-    private Date billDate;
+    private LocalDate billDate;
 
 
     @Column(name = "total_items")

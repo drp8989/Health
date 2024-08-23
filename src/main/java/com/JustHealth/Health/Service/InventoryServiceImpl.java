@@ -5,6 +5,7 @@ import com.JustHealth.Health.DTO.InventoryDTO;
 import com.JustHealth.Health.DTO.InventoryResponseDTO;
 import com.JustHealth.Health.Entity.*;
 import com.JustHealth.Health.Repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +76,16 @@ public class InventoryServiceImpl implements InventoryService {
 //        return inventoryRepository.findAll();
 //    }
 
+
+    public Inventory findById(Long id) throws Exception {
+        Optional<Inventory> inventory=inventoryRepository.findById(id);
+        if(inventory.isEmpty()){
+            throw new Exception("Inventory Not Found");
+        }
+        return inventory.get();
+
+    }
+
     @Override
     public InventoryResponseDTO createInventory(InventoryDTO req) throws Exception {
 
@@ -116,13 +126,14 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryLedger inventoryLedger=new InventoryLedger();
         inventoryLedger.setEntryDate(LocalDateTime.now());
         inventoryLedger.setLedgerTransaction("Inventory Created");
-        inventoryLedger.setInventoryIn((float) 0);
-        inventoryLedger.setInventoryOut((float) 0);
-        inventoryLedger.setClosing((float) 0);
+        inventoryLedger.setInventoryIn(0);
+        inventoryLedger.setInventoryOut(0);
+        inventoryLedger.setClosing(0);
         inventoryLedgerRepository.save(inventoryLedger);
 
         //setting the response
         InventoryResponseDTO inventoryResponseDTO=new InventoryResponseDTO();
+        inventoryResponseDTO.setInventoryId(createdInventory.getId());
         inventoryResponseDTO.setReorderLevel(createdInventory.getReorderLevel());
         inventoryResponseDTO.setReorderQuantity(createdInventory.getReorderQuantity());
         inventoryResponseDTO.setLocation(createdInventory.getLocation());
@@ -135,6 +146,20 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryResponseDTO;
     }
 
+
+
+
+    @Override
+    public void createInventoryForPurchase(Long productId) throws Exception {
+        Inventory inventory=new Inventory();
+        Product product= productService.findProductById(productId);
+        inventory.setProduct(product);
+        inventoryRepository.save(inventory);
+
+    }
+
+
+
     @Override
     public InventoryResponseDTO getInventoryById(Long id)throws Exception{
 
@@ -145,11 +170,12 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory=inventoryOpt.get();
 
         InventoryResponseDTO inventoryResponseDTO=new InventoryResponseDTO();
+        inventoryResponseDTO.setInventoryId(inventory.getId());
         inventoryResponseDTO.setReorderLevel(inventory.getReorderLevel());
         inventoryResponseDTO.setReorderQuantity(inventory.getReorderQuantity());
         inventoryResponseDTO.setLocation(inventory.getLocation());
         inventoryResponseDTO.setMinQTY(inventory.getMinQTY());
-        inventoryResponseDTO.setMinQTY(inventory.getMaxQTY());
+        inventoryResponseDTO.setMaxQTY(inventory.getMaxQTY());
         inventoryResponseDTO.setGST(inventory.getGST());
         inventoryResponseDTO.setCurrentStock(inventory.getCurrentStock());
         inventoryResponseDTO.setProduct(inventory.getProduct());
@@ -162,11 +188,13 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public InventoryResponseDTO updateInventory(InventoryDTO inventoryDTO, Long id) throws Exception {
 
+        //Getting the id for updating inventory
         Optional<Inventory> optInventory=inventoryRepository.findById(id);
 
         if(optInventory.isEmpty()){
             throw new Exception("Inventory Not Found");
         }
+        //Getting the inventory
         Inventory inventory=optInventory.get();
 
         if (Objects.nonNull(inventoryDTO.getReorderLevel())){
@@ -195,26 +223,53 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory updatedInventory = inventoryRepository.save(inventory);
 
         InventoryResponseDTO updatedInventoryDTO = new InventoryResponseDTO();
+
+
         updatedInventoryDTO.setReorderLevel(updatedInventory.getReorderQuantity());
         updatedInventoryDTO.setReorderQuantity(updatedInventory.getReorderLevel());
         updatedInventoryDTO.setLocation(updatedInventory.getLocation());
         updatedInventoryDTO.setMinQTY(updatedInventory.getMinQTY());
         updatedInventoryDTO.setMaxQTY(updatedInventory.getMaxQTY());
         updatedInventoryDTO.setGST(updatedInventory.getGST());
+        updatedInventoryDTO.setCurrentStock(updatedInventory.getCurrentStock());
+        updatedInventoryDTO.setProduct(updatedInventory.getProduct());
+        updatedInventoryDTO.setInventoryBatches(updatedInventory.getInventoryBatch());
 
         return updatedInventoryDTO;
 
     }
 
     @Override
-    public void deleteInventory(Long id) {
-        inventoryRepository.deleteById(id);
+    public void deleteInventory(Long id) throws Exception {
+        Inventory inventory=findById(id);
+        inventoryRepository.delete(inventory);
     }
 
+
     @Override
-    public Page<Inventory> getAllInventoryPaginated(int page, int size) {
+    public Page<InventoryResponseDTO> getAllInventoryPaginated(int page, int size) {
         Pageable pageable=PageRequest.of(page, size);
-        return inventoryRepository.findAll(pageable);
+        Page<Inventory> inventoryPage = inventoryRepository.findAll(pageable);
+        List<InventoryResponseDTO> inventoryDTOs = inventoryPage.stream()
+                .map(this::convertToDTO)
+                .toList();
+        return new PageImpl<>(inventoryDTOs,pageable,inventoryPage.getTotalElements());
+//        return inventoryRepository.findAll(pageable);
+    }
+
+    private InventoryResponseDTO convertToDTO(Inventory inventory) {
+        InventoryResponseDTO dto = new InventoryResponseDTO();
+        dto.setInventoryId(inventory.getId());
+        dto.setReorderLevel(inventory.getReorderLevel());
+        dto.setReorderQuantity(inventory.getReorderQuantity());
+        dto.setLocation(inventory.getLocation());
+        dto.setMinQTY(inventory.getMinQTY());
+        dto.setMaxQTY(inventory.getMaxQTY());
+        dto.setGST(inventory.getGST());
+        dto.setCurrentStock(inventory.getCurrentStock());
+        dto.setProduct(inventory.getProduct());
+        dto.setInventoryBatches(inventory.getInventoryBatch());
+        return dto;
     }
 
     @Override
@@ -283,6 +338,13 @@ public class InventoryServiceImpl implements InventoryService {
         return inventory;
     }
 
+
+
+    @Override
+    public Inventory getInventoryFromProduct(Long productId) {
+        return inventoryRepository.findByProductId(productId);
+    }
+
     @Override
     @Transactional
     public List<Purchase> getPurchaseForInventory(Long id) throws Exception {
@@ -306,20 +368,6 @@ public class InventoryServiceImpl implements InventoryService {
 
         List<Inventory> inventories=inventoryRepository.findAll();
 
-//        //Streaming the inventory
-//        inventories.stream().filter(inventory -> {
-//            //Getting All the batches of inventory
-//            List<Batch> inventoryBatch=inventory.getInventoryBatch();
-//            //Streaming the batches for expiry
-//            inventoryBatch.stream().filter(batch -> {
-//                Date expiryDate=batch.getExpiryDate();
-//                Date currentDate=new Date();
-//                if(currentDate.compareTo(expiryDate)>0){
-//
-//                }
-//            });
-//        })
-
         // Stream through the inventories
         inventories.stream().forEach(inventory -> {
             // Get all batches of the inventory
@@ -342,6 +390,43 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
 
+    @Override
+    @Transactional
+    public List<Inventory> getExpiringProducts() {
+
+        List<Inventory> expiredProducts=new ArrayList<>();
+
+        List<Inventory> inventories=inventoryRepository.findAll();
+
+        // Stream through the inventories
+        inventories.stream().forEach(inventory -> {
+            // Get all batches of the inventory
+            List<Batch> inventoryBatch = inventory.getInventoryBatch();
+
+            // Check if any batch is expired
+            boolean isExpiringInventory = inventoryBatch.stream().anyMatch(batch -> {
+                LocalDate currentDate = LocalDate.now();
+                LocalDate expiryDate = batch.getExpiryDate();
+                LocalDate isExpiringDate= currentDate.minusMonths(2);
+                return expiryDate.isAfter(isExpiringDate);
+//                return expiryDate.isBefore(currentDate) || expiryDate.isEqual(currentDate);
+            });
+
+            // If any batch is expired, add the inventory to the expired products list
+            if (isExpiringInventory) {
+                expiredProducts.add(inventory);
+            }
+        });
+        return expiredProducts;
+    }
+
+//    @Override
+//    public Product getProductByInventoryId(Long inventoryId) throws Exception {
+//        Product product=inventoryRepository.findByInventoryId(inventoryId);
+//        return product;
+//    }
+
+
     public List<Batch> getBatchesForInventory(Integer inventoryId) {
         Inventory inventory = inventoryRepository.findById(Long.valueOf(inventoryId)).orElse(null);
         if (inventory != null) {
@@ -349,6 +434,8 @@ public class InventoryServiceImpl implements InventoryService {
         }
         return null;
     }
+
+
 
 
 

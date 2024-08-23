@@ -7,9 +7,12 @@ import com.JustHealth.Health.DTO.InventoryResponseDTO;
 import com.JustHealth.Health.Entity.Batch;
 import com.JustHealth.Health.Entity.Inventory;
 import com.JustHealth.Health.Entity.Purchase;
+import com.JustHealth.Health.Response.ErrorMessage;
 import com.JustHealth.Health.Service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,8 +45,17 @@ public class InventoryController {
     }
 
     @DeleteMapping("/{id}")
-    private void delete(@PathVariable Long id){
-        inventoryService.deleteInventory(id);
+    private ResponseEntity<?> delete(@PathVariable Long id){
+        try {
+            inventoryService.deleteInventory(id);
+
+            return new ResponseEntity<>("Deleted Succesfully", HttpStatus.OK);
+        }catch (Exception e){
+            ErrorMessage errorMessage=new ErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+            ResponseEntity responseEntity = new ResponseEntity<>(errorMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseEntity;
+        }
+
     }
 
 
@@ -65,7 +77,7 @@ public class InventoryController {
 
 
     @GetMapping("/getAllInventory")
-    private Page<Inventory> getAllInventory(@RequestParam(defaultValue = "0") int page,
+    private Page<InventoryResponseDTO> getAllInventory(@RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "5") int size) throws Exception{
         return inventoryService.getAllInventoryPaginated(page,size);
     }

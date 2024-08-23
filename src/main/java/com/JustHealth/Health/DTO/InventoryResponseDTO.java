@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class InventoryResponseDTO {
 
+    private Long inventoryId;
     private Integer reorderLevel;
     private Integer reorderQuantity;
     private String location;

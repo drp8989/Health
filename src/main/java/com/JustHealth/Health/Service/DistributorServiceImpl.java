@@ -1,16 +1,18 @@
 package com.JustHealth.Health.Service;
 
 import com.JustHealth.Health.DTO.DistributorDTO;
+import com.JustHealth.Health.DTO.DistributorResponseDTO;
 import com.JustHealth.Health.Entity.Distributor;
 import com.JustHealth.Health.Repository.DistributorRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -21,7 +23,7 @@ public class DistributorServiceImpl implements DistributorService{
     DistributorRepository distributorRepository;
 
     @Override
-    public Distributor createDistributor(DistributorDTO req)throws Exception {
+    public DistributorResponseDTO createDistributor(DistributorDTO req)throws Exception {
 
         Distributor distributor=new Distributor();
         distributor.setDistributorStoreName(req.getDistributorStoreName());
@@ -30,9 +32,19 @@ public class DistributorServiceImpl implements DistributorService{
         distributor.setDistributorEmail(req.getDistributorEmail());
         distributor.setDistributorMobileNo(req.getDistributorMobileNo());
         distributor.setDistributorAddress(req.getDistributorAddress());
-        distributor.setDistributorAccountBalance(Integer.valueOf(req.getDistributorAccountBalance()));
+        distributor.setDistributorAccountBalance(Float.valueOf(req.getDistributorAccountBalance()));
+        distributorRepository.save(distributor);
 
-        return distributorRepository.save(distributor);
+        DistributorResponseDTO distributorResponseDTO=new DistributorResponseDTO();
+        distributorResponseDTO.setDistributorStoreName(distributor.getDistributorStoreName());
+        distributorResponseDTO.setDistributorName(distributor.getDistributorName());
+        distributorResponseDTO.setDistributorGSTIN(distributor.getDistributorGSTIN());
+        distributorResponseDTO.setDistributorEmail(distributor.getDistributorEmail());
+        distributorResponseDTO.setDistributorMobileNo(distributor.getDistributorMobileNo());
+        distributorResponseDTO.setDistributorAddress(distributor.getDistributorAddress());
+        distributorResponseDTO.setDistributorAccountBalance(distributor.getDistributorAccountBalance());
+
+        return distributorResponseDTO;
     }
 
     @Override
@@ -42,6 +54,14 @@ public class DistributorServiceImpl implements DistributorService{
             throw new Exception("Distributor not Found");
         }
         return distributor.get();
+
+    }
+
+    @Override
+    public void deleteByDistributorId(Long id) throws Exception {
+        Distributor distributor=findById(id);
+        distributorRepository.delete(distributor);
+
 
     }
 
@@ -75,5 +95,24 @@ public class DistributorServiceImpl implements DistributorService{
     public List<Distributor> getAllDistributorPurchase() {
         List<Distributor> distributors=distributorRepository.findAll();
         return distributors;
+    }
+
+    @Override
+    @Transactional
+    public Page<Distributor> findAllDistributorToPay(int page, int size) throws Exception {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Distributor> distributors = distributorRepository.findAll();
+
+        // Filter distributors with positive account balance
+        List<Distributor> toPay = distributors.stream()
+                .filter(distributor -> distributor.getDistributorAccountBalance() > 0)
+                .collect(Collectors.toList());
+
+        // Convert list to a page with the requested pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), toPay.size());
+        List<Distributor> paginatedList = toPay.subList(start, end);
+
+        return new PageImpl<>(paginatedList, pageable, toPay.size());
     }
 }
