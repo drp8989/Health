@@ -26,8 +26,8 @@ public class InvoiceDTO {
 
     private List<SalesProduct> salesProducts;
 
-    private Integer totalItems;
-    private Integer netTotal;
+//    private Integer totalItems;
+//    private Integer netTotal;
 
     public enum paymentType{
         CASH,

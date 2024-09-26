@@ -16,11 +16,11 @@ public class SalesProduct {
 
     private Long productId;
     private String batch;
-    private Float batchMRP;
+//    private Float batchMRP;
     private Integer productSalesQTY;
     private Integer discount;
 //    private Integer gst;
-    private Float totalAmount;
+//    private Float totalAmount;
     //To be Calculated
 
 }

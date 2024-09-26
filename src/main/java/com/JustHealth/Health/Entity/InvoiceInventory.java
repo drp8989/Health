@@ -29,6 +29,9 @@ public class InvoiceInventory {
     @Column(name = "product_qty")
     private Integer quantity;
 
+    @Column(name = "product_total")
+    private Float totalAmount;
+
     @JsonBackReference
     public Invoice getInvoice(){
         return invoice;

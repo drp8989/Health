@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/JUSTHEALTH  # Connect to db on port 5433
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=Darshan1998
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: postgres:16.4
+    environment:
+      - POSTGRES_DB=JUSTHEALTH
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Darshan1998
+    ports:
+      - "5433:5432"  # Map host port 5433 to container port 5432
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:

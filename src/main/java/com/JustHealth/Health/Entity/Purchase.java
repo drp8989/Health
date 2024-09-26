@@ -50,6 +50,10 @@ public class Purchase {
     @Enumerated(EnumType.STRING)
     private paymentType purchasePaymentType;
 
+    @OneToMany(mappedBy = "purchaseReturnAgainstPurchase",cascade = CascadeType.ALL,orphanRemoval = false,fetch = FetchType.EAGER)
+    private List<PurchaseReturn> purchaseReturns;
+
+
 
 
 

@@ -4,6 +4,7 @@ import com.JustHealth.Health.DTO.InvoiceDTO;
 import com.JustHealth.Health.DTO.InvoiceResponseDTO;
 import com.JustHealth.Health.Entity.Inventory;
 import com.JustHealth.Health.Entity.Invoice;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public interface InvoiceService {
 
     public InvoiceResponseDTO createInvoice(InvoiceDTO invoiceDTO) throws Exception;
 
+    public Page<Invoice> getAllInvoices(int page,int size)throws Exception;
 
 
 

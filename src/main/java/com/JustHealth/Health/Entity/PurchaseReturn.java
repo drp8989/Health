@@ -30,6 +30,11 @@ public class PurchaseReturn {
     @Column(name = "total_items")
     private Integer totalItems;
 
+    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER,optional = true)
+    private Purchase purchaseReturnAgainstPurchase;
+
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
+    private List<PurchaseInventory> purchaseInventories;
 
 //    @ManyToOne()
 //    private Distributor purchaseDistributor;

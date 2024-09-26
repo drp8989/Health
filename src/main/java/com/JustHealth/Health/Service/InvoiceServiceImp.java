@@ -10,6 +10,9 @@ import com.JustHealth.Health.Repository.InvoiceInventoryRepository;
 import com.JustHealth.Health.Repository.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,6 +67,7 @@ public class InvoiceServiceImp implements InvoiceService{
 
         Float totalAmount= 0.00F;
         Integer totalItems=0;
+        List<InvoiceInventory> invoiceInventories=new ArrayList<>();
 
         for(SalesProduct salesProduct:salesProductList){
             Long productId= salesProduct.getProductId();
@@ -91,10 +95,14 @@ public class InvoiceServiceImp implements InvoiceService{
                 matchingBatch.setQuantityInStock(matchingBatch.getQuantityInStock()-productSalesQTY);
                 batchRepository.save(matchingBatch);
 
+                Float salePriceMRP=matchingBatch.getBatchMRP();
+
+
+
                 inventory.setCurrentStock(calculateCurrentQTYinStock(inventoryBatches));
                 inventoryRepository.save(inventory);
 
-                List<InvoiceInventory> invoiceInventories=new ArrayList<>();
+
                 InvoiceInventory invoiceInventory=new InvoiceInventory();
                 invoiceInventory.setInventory(inventory);
                 invoiceInventory.setQuantity(productSalesQTY);
@@ -103,28 +111,59 @@ public class InvoiceServiceImp implements InvoiceService{
 
                 totalItems+=productSalesQTY;
 
-
-
-
-
-
+                if(discount==null||discount.equals(0)){
+                    totalAmount+=salePriceMRP;
+                }else{
+                    totalAmount+=salePriceMRP-(salePriceMRP*discount/100);
+                }
 
 
 
 
 
             }
-            Invoice invoice=new Invoice();
-            invoice.setBillDate(billDate);
-            invoice.setTotalItems(totalItems);
-
 
         }
 
 
         Invoice invoice=new Invoice();
+        invoice.setBillDate(billDate);
+        invoice.setCustomerName(customerName);
+        invoice.setTotalItems(totalItems);
+        invoice.setNetTotal(totalAmount);
 
-        return null;
+
+        for (InvoiceInventory invoiceInventory:invoiceInventories ){
+            invoiceInventory.setInvoice(invoice);
+            invoiceInventoryRepository.save(invoiceInventory);
+        }
+
+        invoice.setInvoiceInventories(invoiceInventories);
+        invoiceRepository.save(invoice);
+
+
+        InvoiceResponseDTO invoiceResponseDTO=new InvoiceResponseDTO();
+        invoiceResponseDTO.setBillDate(invoice.getBillDate());
+        invoiceResponseDTO.setCustomerName(invoice.getCustomerName());
+//        invoiceResponseDTO.setBillingFor();
+        invoiceResponseDTO.setSalesProducts(salesProductList);
+        invoiceResponseDTO.setTotalItems(totalItems);
+        invoiceResponseDTO.setNetTotal(totalAmount);
+
+
+        return invoiceResponseDTO;
+
+    }
+
+    @Override
+    @Transactional
+    public Page<Invoice> getAllInvoices(int page, int size) throws Exception {
+        try {
+            Pageable pageable= PageRequest.of(page,size);
+            return invoiceRepository.findAll(pageable);
+        }catch (Exception e){
+            throw new Exception("Exception"+e.getMessage(),e);
+        }
 
     }
 //    @Override

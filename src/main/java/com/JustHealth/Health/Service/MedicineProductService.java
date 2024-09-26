@@ -4,14 +4,12 @@ package com.JustHealth.Health.Service;
 import com.JustHealth.Health.DTO.MedicineProductDTO;
 import com.JustHealth.Health.DTO.MedicineProductResponseDTO;
 import com.JustHealth.Health.Entity.MedicineProduct;
-import com.JustHealth.Health.Request.MedicineProductRequest;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+
 public interface MedicineProductService {
 
 

@@ -1,8 +1,10 @@
 package com.JustHealth.Health.Service;
 
 import com.JustHealth.Health.DTO.DistributorDTO;
+import com.JustHealth.Health.DTO.DistributorPurchasesDTO;
 import com.JustHealth.Health.DTO.DistributorResponseDTO;
 import com.JustHealth.Health.Entity.Distributor;
+import com.JustHealth.Health.Entity.Purchase;
 import com.JustHealth.Health.Repository.DistributorRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +78,17 @@ public class DistributorServiceImpl implements DistributorService{
     }
 
     @Override
-    public List<Distributor> findDistributorsByName(String query) {
-        return distributorRepository.searchByDistributorName(query);
+    @Transactional
+    public Page<Distributor> findDistributorsByName(String query,int page,int size) {
+        Pageable pageable=PageRequest.of(page,size);
+        return distributorRepository.searchByDistributorName(query,pageable);
     }
 
     @Override
-    public List<Distributor> findByDistributorGSTIN(String query) {
-        return distributorRepository.findByDistributorGSTIN(query);
+    @Transactional
+    public Page<Distributor> findByDistributorGSTIN(String query,int page,int size) {
+        Pageable pageable=PageRequest.of(page,size);
+        return distributorRepository.findByDistributorGSTIN(query,pageable);
     }
 
     @Override
@@ -95,6 +101,24 @@ public class DistributorServiceImpl implements DistributorService{
     public List<Distributor> getAllDistributorPurchase() {
         List<Distributor> distributors=distributorRepository.findAll();
         return distributors;
+    }
+
+    @Override
+    public Page<DistributorPurchasesDTO> getDistributorPurchasesByDistributorId(Long id, Pageable pageable) throws Exception {
+        Distributor distributor=findById(id);
+
+        List<Purchase> allPurchases = distributor.getPurchase();
+        int totalPurchases = allPurchases.size();
+        // Calculate the start and end indices for the pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), totalPurchases);
+
+        List<Purchase> paginatedPurchases = allPurchases.subList(start, end);
+
+        DistributorPurchasesDTO distributorResponseDTO=new DistributorPurchasesDTO();
+        distributorResponseDTO.setDistributorPurchases(paginatedPurchases);
+
+        return new PageImpl<>(List.of(distributorResponseDTO), pageable, totalPurchases);
     }
 
     @Override

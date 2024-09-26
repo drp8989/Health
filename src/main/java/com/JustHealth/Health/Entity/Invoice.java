@@ -29,12 +29,14 @@ public class Invoice {
     @Column(name = "bill_date")
     private LocalDate billDate;
 
+    @Column(name = "customer_name")
+    private String customerName;
 
     @Column(name = "total_items")
     private Integer totalItems;
 
     @Column(name = "net_total")
-    private Integer netTotal;
+    private Float netTotal;
 
 
     @Enumerated(EnumType.STRING)
@@ -43,7 +45,7 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     private orderType InvoiceOrderType;
 
-    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<InvoiceInventory> invoiceInventories;
 
 ////    Invoice can have many products from inventory

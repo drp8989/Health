@@ -2,6 +2,7 @@ package com.JustHealth.Health.Entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -46,7 +47,8 @@ public class MedicineComposition {
     private String compositionExpertAdvice;
 
     @Column(name = "medicineFAQ")
-    private String compositionFAQ;
+    @OneToMany(mappedBy = "medicineComposition", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<MedicineFAQ> compositionFAQ;
 
 
 //    @OneToOne()
@@ -55,6 +57,12 @@ public class MedicineComposition {
     @OneToMany(mappedBy = "medicineComposition")
     @JsonIgnore()
     private List<MedicineProduct> medicineProduct =new ArrayList<>();
+
+
+    @JsonManagedReference
+    public List<MedicineFAQ> getCompositionFAQ() {
+        return compositionFAQ;
+    }
 
 
 

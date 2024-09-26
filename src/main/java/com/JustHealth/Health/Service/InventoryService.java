@@ -62,6 +62,8 @@ public interface InventoryService {
 
 //    public Inventory getInventoryById(Long id) throws Exception;
 
+    public Inventory addBatch(BatchDTO batchDTO);
+
     public InventoryResponseDTO createInventory(InventoryDTO req) throws Exception;
 
 
@@ -77,10 +79,6 @@ public interface InventoryService {
     public Page<InventoryResponseDTO> getAllInventoryPaginated(int page,int size);
 
     public Page<Batch> getBatchesForInventory(Long id,int page, int size) throws Exception;
-
-    public Inventory addBatch(BatchDTO batchDTO);
-
-
 
 
     Inventory getInventoryFromProduct(Long productId);

@@ -1,6 +1,8 @@
 package com.JustHealth.Health.Controller;
 
 
+import com.JustHealth.Health.DTO.MedicineCompositionDTO;
+import com.JustHealth.Health.DTO.MedicineCompositionResponseDTO;
 import com.JustHealth.Health.Entity.MedicineComposition;
 import com.JustHealth.Health.Request.MedicineCompositionRequest;
 import com.JustHealth.Health.Service.MedicineCompositionService;
@@ -20,8 +22,8 @@ public class MedicineCompositionController {
     MedicineCompositionService medicineCompositionService;
 
     @PostMapping("/create")
-    private ResponseEntity<MedicineComposition> createComposition(@RequestBody MedicineCompositionRequest req) throws Exception {
-        MedicineComposition medicineComposition=medicineCompositionService.createMedicineComposition(req);
+    private ResponseEntity<?> createComposition(@RequestBody MedicineCompositionDTO medicineCompositionDTO) throws Exception {
+        MedicineCompositionResponseDTO medicineComposition=medicineCompositionService.createMedicineComposition(medicineCompositionDTO);
         return new  ResponseEntity<>(medicineComposition,HttpStatus.CREATED);
     }
 
