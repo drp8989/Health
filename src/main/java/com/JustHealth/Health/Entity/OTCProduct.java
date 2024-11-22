@@ -16,15 +16,29 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @DiscriminatorValue("OTC")
-//public class OTCProduct extends Product
 public class OTCProduct extends Product{
 
 
-    @Column(name = "otc_product_name")
-    private String OTCProductName;
 
-    @Column(name = "otc_product_manufacturer")
-    private String OTCProductManufacturer;
+    @Lob
+    @Column(name = "usage_instructions")
+    private String usageInstructions;
+
+    @Lob
+    @Column(name = "warnings")
+    private String warnings;
+
+    @Lob
+    @Column(name = "storage_instructions")
+    private String storageInstructions;
+
+
+
+
+    @Column(name = "weight")
+    private Double weight;
+
+
 
 //    @OneToOne
 //    @JoinColumn(name="id", nullable=false)

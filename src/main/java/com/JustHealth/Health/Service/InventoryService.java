@@ -8,6 +8,7 @@ import com.JustHealth.Health.Entity.Inventory;
 import com.JustHealth.Health.Entity.Product;
 import com.JustHealth.Health.Entity.Purchase;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -85,9 +86,13 @@ public interface InventoryService {
 
     public List<Purchase> getPurchaseForInventory(Long id) throws Exception;
 
-    public List<Inventory> getExpiredProducts();
 
-    public List<Inventory> getExpiringProducts();
+    public Page<InventoryResponseDTO> getExpiredProducts(Pageable pageable);
+    public Page<InventoryResponseDTO> getExpiringProducts(Pageable pageable);
+
+//    public List<Inventory> getExpiredProducts();
+
+//    public List<Inventory> getExpiringProducts();
 
 //    Product getProductByInventoryId(Long inventoryId) throws Exception;
 

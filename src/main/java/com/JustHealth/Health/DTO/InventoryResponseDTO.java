@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class InventoryResponseDTO {
 
+    //For reference only
     private Long inventoryId;
     private Integer reorderLevel;
     private Integer reorderQuantity;
@@ -19,8 +20,9 @@ public class InventoryResponseDTO {
     private Integer maxQTY;
     private Integer GST;
     private Integer currentStock;
-    private Product product;
-    private List<Batch> inventoryBatches;
+//    private Product product;
+
+    private List<BatchResponseDTO> inventoryBatches;
 
 
 }

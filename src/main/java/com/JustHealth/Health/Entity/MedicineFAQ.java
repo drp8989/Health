@@ -21,10 +21,12 @@ public class MedicineFAQ {
 
     @Lob
     @Column(name = "medicine_question")
+    @Basic(fetch = FetchType.EAGER)
     private String question;
 
     @Lob
     @Column(name = "medicine_answer")
+    @Basic(fetch = FetchType.EAGER)
     private String answer;
 
 
@@ -36,6 +38,9 @@ public class MedicineFAQ {
     @JsonBackReference
     public MedicineComposition getMedicineComposition() {
         return medicineComposition;
+    }
+    public void setMedicineComposition(MedicineComposition medicineComposition) {
+        this.medicineComposition = medicineComposition;
     }
 
 }

@@ -112,14 +112,21 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         Inventory createdInventory=new Inventory();
+
         createdInventory.setReorderLevel(req.getReorderLevel());
         createdInventory.setReorderQuantity(req.getReorderQuantity());
         createdInventory.setLocation(req.getLocation());
         createdInventory.setMinQTY(req.getMinQTY());
         createdInventory.setMaxQTY(req.getMaxQTY());
         createdInventory.setGST(req.getGST());
+        createdInventory.setDefaultDiscount(req.getDefaultDiscount());
+
         //todo adding product reference and batch details and current stock which needs to be calculated
         createdInventory.setProduct(productService.findProductById(req.getProductId()));
+        createdInventory.setLockDiscount(req.getLockDiscount());
+        createdInventory.setAcceptOnlineOrder(req.getAcceptOnlineOrder());
+        //Margin is calculated on ptr rates and mrp;
+        // createdInventory.setMargin();
         inventoryRepository.save(createdInventory);
 
         //Updating in ledger
@@ -140,7 +147,7 @@ public class InventoryServiceImpl implements InventoryService {
         inventoryResponseDTO.setMinQTY(createdInventory.getMinQTY());
         inventoryResponseDTO.setMaxQTY(createdInventory.getMaxQTY());
         inventoryResponseDTO.setGST(createdInventory.getGST());
-        inventoryResponseDTO.setProduct(createdInventory.getProduct());
+//        inventoryResponseDTO.setProduct(createdInventory.getProduct());
 
 
         return inventoryResponseDTO;
@@ -178,8 +185,7 @@ public class InventoryServiceImpl implements InventoryService {
         inventoryResponseDTO.setMaxQTY(inventory.getMaxQTY());
         inventoryResponseDTO.setGST(inventory.getGST());
         inventoryResponseDTO.setCurrentStock(inventory.getCurrentStock());
-        inventoryResponseDTO.setProduct(inventory.getProduct());
-        inventoryResponseDTO.setInventoryBatches(inventory.getInventoryBatch());
+        inventoryResponseDTO.setInventoryBatches(DTOHelper.convertToBatchResponseDTO(inventory.getInventoryBatch()));
 
         return inventoryResponseDTO;
     }
@@ -232,8 +238,8 @@ public class InventoryServiceImpl implements InventoryService {
         updatedInventoryDTO.setMaxQTY(updatedInventory.getMaxQTY());
         updatedInventoryDTO.setGST(updatedInventory.getGST());
         updatedInventoryDTO.setCurrentStock(updatedInventory.getCurrentStock());
-        updatedInventoryDTO.setProduct(updatedInventory.getProduct());
-        updatedInventoryDTO.setInventoryBatches(updatedInventory.getInventoryBatch());
+//        updatedInventoryDTO.setProduct(updatedInventory.getProduct());
+//        updatedInventoryDTO.setInventoryBatches(updatedInventory.getInventoryBatch());
 
         return updatedInventoryDTO;
 
@@ -267,8 +273,8 @@ public class InventoryServiceImpl implements InventoryService {
         dto.setMaxQTY(inventory.getMaxQTY());
         dto.setGST(inventory.getGST());
         dto.setCurrentStock(inventory.getCurrentStock());
-        dto.setProduct(inventory.getProduct());
-        dto.setInventoryBatches(inventory.getInventoryBatch());
+//        dto.setProduct(inventory.getProduct());
+//        dto.setInventoryBatches(inventory.getInventoryBatch());
         return dto;
     }
 
@@ -302,6 +308,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public Inventory addBatch(BatchDTO req) {
+
         Optional<Inventory> inventoryOpt = inventoryRepository.findById(Long.valueOf(req.getInventoryId()));
         if (inventoryOpt.isEmpty()) {
             throw new RuntimeException("Inventory not found for adding batch");
@@ -315,13 +322,21 @@ public class InventoryServiceImpl implements InventoryService {
             throw new RuntimeException("Batch already exists in inventory");
         }
 
+        Integer GST=inventory.getGST();
+
         // Create and set up the new batch
         Batch batch = new Batch();
         batch.setBatch(req.getBatch());
         batch.setBatchPTR(req.getBatchPTR());
         batch.setBatchMRP(req.getBatchMRP());
+        Float LP=req.getBatchPTR()+((req.getBatchPTR()*GST)/100);
+        Float marginRS=req.getBatchMRP()-LP;
+        batch.setBatchLP(LP);
         batch.setQuantityInStock(req.getQuantityInStock());
         batch.setExpiryDate(req.getExpiryDate());
+        batch.setBatchMargin((marginRS/LP)*100);
+        batchRepository.save(batch);
+
 //        batch.setBatchInventory(inventory); // Set the inventory reference in the batch
 
 
@@ -330,8 +345,12 @@ public class InventoryServiceImpl implements InventoryService {
 
 
         // Add the new batch to the inventory
-        inventory.getInventoryBatch().add(batch);
+        List<Batch> inventorybatches=inventory.getInventoryBatch();
+        inventorybatches.add(batch);
+        Float avgMargin=calculateAVGmargins(inventorybatches);
 
+        inventory.setInventoryBatch(inventorybatches);
+        inventory.setAvgMargin(avgMargin);
 
         // Save the inventory (should cascade and save the batch as well if cascade settings are correct)
         inventoryRepository.save(inventory);
@@ -362,7 +381,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public List<Inventory> getExpiredProducts() {
+    public Page<InventoryResponseDTO> getExpiredProducts(Pageable pageable) {
 
         List<Inventory> expiredProducts=new ArrayList<>();
 
@@ -385,14 +404,29 @@ public class InventoryServiceImpl implements InventoryService {
                 expiredProducts.add(inventory);
             }
         });
+        List<InventoryResponseDTO> expiredProductsDTOs = expiredProducts.stream()
+                .map(DTOHelper::convertToInventoryResponseDTO)
+                .collect(Collectors.toList());
 
-        return expiredProducts;
+        // Apply pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), expiredProductsDTOs.size());
+
+        List<InventoryResponseDTO> pagedList;
+        if (start > expiredProductsDTOs.size()) {
+            pagedList = List.of(); // Empty list
+        } else {
+            pagedList = expiredProductsDTOs.subList(start, end);
+        }
+
+        return new PageImpl<>(pagedList, pageable, expiredProductsDTOs.size());
+
     }
 
 
     @Override
     @Transactional
-    public List<Inventory> getExpiringProducts() {
+    public Page<InventoryResponseDTO > getExpiringProducts(Pageable pageable) {
 
         List<Inventory> expiredProducts=new ArrayList<>();
 
@@ -417,8 +451,106 @@ public class InventoryServiceImpl implements InventoryService {
                 expiredProducts.add(inventory);
             }
         });
-        return expiredProducts;
+        // Convert to DTOs
+        List<InventoryResponseDTO> expiringProductsDTOs = expiredProducts.stream()
+                .map(DTOHelper::convertToInventoryResponseDTO)
+                .collect(Collectors.toList());
+        // Apply pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), expiringProductsDTOs.size());
+
+        List<InventoryResponseDTO> pagedList;
+        if (start > expiringProductsDTOs.size()) {
+            pagedList = List.of(); // Empty list
+        } else {
+            pagedList = expiringProductsDTOs.subList(start, end);
+        }
+
+        return new PageImpl<>(pagedList, pageable, expiringProductsDTOs.size());
     }
+
+
+
+
+
+    public Float calculateAVGmargins(List<Batch> batches){
+        if (batches == null || batches.isEmpty()) {
+            return 0.0f;  // Handle empty list case
+        }
+
+        // Calculate total margin with any specific formula, if needed
+        float totalMargin = batches.stream()
+                .map(Batch::getBatchMargin)
+                .reduce(0.0f, Float::sum);
+
+        return totalMargin / batches.size();
+
+    }
+
+    public Integer calculateQuantityinStock(List<Batch> batches){
+        return null;
+    }
+
+
+//    @Override
+//    @Transactional
+//    public List<Inventory> getExpiredProducts() {
+//
+//        List<Inventory> expiredProducts=new ArrayList<>();
+//
+//        List<Inventory> inventories=inventoryRepository.findAll();
+//
+//        // Stream through the inventories
+//        inventories.stream().forEach(inventory -> {
+//            // Get all batches of the inventory
+//            List<Batch> inventoryBatch = inventory.getInventoryBatch();
+//
+//            // Check if any batch is expired
+//            boolean hasExpiredBatch = inventoryBatch.stream().anyMatch(batch -> {
+//                LocalDate currentDate = LocalDate.now();
+//                LocalDate expiryDate = batch.getExpiryDate();
+//                return expiryDate.isBefore(currentDate) || expiryDate.isEqual(currentDate);
+//            });
+//
+//            // If any batch is expired, add the inventory to the expired products list
+//            if (hasExpiredBatch) {
+//                expiredProducts.add(inventory);
+//            }
+//        });
+//
+//        return expiredProducts;
+//    }
+//
+//
+//    @Override
+//    @Transactional
+//    public List<Inventory> getExpiringProducts() {
+//
+//        List<Inventory> expiredProducts=new ArrayList<>();
+//
+//        List<Inventory> inventories=inventoryRepository.findAll();
+//
+//        // Stream through the inventories
+//        inventories.stream().forEach(inventory -> {
+//            // Get all batches of the inventory
+//            List<Batch> inventoryBatch = inventory.getInventoryBatch();
+//
+//            // Check if any batch is expired
+//            boolean isExpiringInventory = inventoryBatch.stream().anyMatch(batch -> {
+//                LocalDate currentDate = LocalDate.now();
+//                LocalDate expiryDate = batch.getExpiryDate();
+//                LocalDate isExpiringDate= currentDate.minusMonths(2);
+//                return expiryDate.isAfter(isExpiringDate);
+////                return expiryDate.isBefore(currentDate) || expiryDate.isEqual(currentDate);
+//            });
+//
+//            // If any batch is expired, add the inventory to the expired products list
+//            if (isExpiringInventory) {
+//                expiredProducts.add(inventory);
+//            }
+//        });
+//        return expiredProducts;
+//    }
 
 //    @Override
 //    public Product getProductByInventoryId(Long inventoryId) throws Exception {

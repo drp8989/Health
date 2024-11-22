@@ -2,8 +2,10 @@ package com.JustHealth.Health.Service;
 
 import com.JustHealth.Health.DTO.MedicineProductDTO;
 import com.JustHealth.Health.DTO.MedicineProductResponseDTO;
+import com.JustHealth.Health.DTO.ProductRequestDTO;
 import com.JustHealth.Health.Entity.MedicineComposition;
 import com.JustHealth.Health.Entity.MedicineProduct;
+import com.JustHealth.Health.Entity.Product;
 import com.JustHealth.Health.Exception.MedicineCompositionNotFoundException;
 import com.JustHealth.Health.Exception.MedicineNotFoundException;
 import com.JustHealth.Health.Repository.MedicineCompositionRepository;
@@ -34,7 +36,7 @@ public class MedicineProductServiceImpl implements MedicineProductService {
         Optional<MedicineProduct> medicineProduct=medicineProductRepository.findById(id);
 
         if(medicineProduct.isEmpty()){
-            throw new MedicineNotFoundException("Medicine Not found");
+            throw new MedicineNotFoundException("MEDICINE Not found");
         }
         return medicineProduct.get();
     }
@@ -43,7 +45,7 @@ public class MedicineProductServiceImpl implements MedicineProductService {
         Optional<MedicineComposition> medicineComposition=medicineCompositionRepository.findById(id);
 
         if (medicineComposition.isEmpty()){
-            throw new MedicineCompositionNotFoundException("Medicine Composition Not found");
+            throw new MedicineCompositionNotFoundException("MEDICINE Composition Not found");
         }
         return medicineComposition.get();
     }
@@ -57,7 +59,7 @@ public class MedicineProductServiceImpl implements MedicineProductService {
 //
 //        medicineProduct.setProductName(req.getProductName());
 //        medicineProduct.setProductManufacturer(req.getProductManufacturer());
-//        medicineProduct.setProductType("Medicine");
+//        medicineProduct.setProductType("MEDICINE");
 //        medicineProduct.setMedicineRx(req.getMedicineRx());
 //        medicineProduct.setProductDosageForm(MedicineProduct.DosageForm.valueOf(req.getProductDosageForm()));
 //        medicineProduct.setMedicinePackSize(req.getMedicinePackSize());
@@ -110,17 +112,17 @@ public class MedicineProductServiceImpl implements MedicineProductService {
 
         Optional<MedicineProduct> medicineProduct=medicineProductRepository.findById(medicineId);
         if(medicineProduct.isEmpty()){
-            throw new MedicineNotFoundException("Medicine Not Found Error");
+            throw new MedicineNotFoundException("MEDICINE Not Found Error");
         }
         MedicineProductResponseDTO medicineProductResponse=new MedicineProductResponseDTO();
 
         medicineProductResponse.setProductName(medicineProduct.get().getProductName());
         medicineProductResponse.setProductManufacturer(medicineProduct.get().getProductManufacturer());
         medicineProductResponse.setMedicineRx(medicineProduct.get().getMedicineRx());
-        medicineProductResponse.setProductDosageForm(String.valueOf(medicineProduct.get().getProductDosageForm()));
+        medicineProductResponse.setProductDosageForm(MedicineProduct.DosageForm.valueOf(String.valueOf(medicineProduct.get().getProductDosageForm())));
         medicineProductResponse.setMedicinePackSize(medicineProduct.get().getMedicinePackSize());
         medicineProductResponse.setMedicineReturnPolicy(medicineProduct.get().getMedicineReturnPolicy());
-        medicineProductResponse.setMedicineComposition(medicineProduct.get().getMedicineComposition());
+//        medicineProductResponse.setMedicineComposition(medicineProduct.get().getMedicineComposition());
 
 
         return medicineProductResponse;
@@ -130,25 +132,25 @@ public class MedicineProductServiceImpl implements MedicineProductService {
     public MedicineProductResponseDTO createMedicineProductDTO(MedicineProductDTO req) throws Exception {
 
         if (req.getProductName() == null || req.getProductName().isEmpty()) {
-            throw new IllegalArgumentException("Medicine Product name is required.");
+            throw new IllegalArgumentException("MEDICINE Product name is required.");
         }
         if (req.getProductManufacturer() == null || req.getProductManufacturer().isEmpty()) {
-            throw new IllegalArgumentException("Medicine Product manufacturer is required.");
+            throw new IllegalArgumentException("MEDICINE Product manufacturer is required.");
         }
         if (req.getMedicineRx() == null) {
-                throw new IllegalArgumentException("Medicine Product Field is required.");
+                throw new IllegalArgumentException("MEDICINE Product Field is required.");
         }
         if (req.getProductDosageForm() == null || req.getProductDosageForm().isEmpty()) {
-            throw new IllegalArgumentException("Medicine Product Dosage Form is required.");
+            throw new IllegalArgumentException("MEDICINE Product Dosage Form is required.");
         }
         if (req.getMedicinePackSize() == null || req.getMedicinePackSize().isEmpty()) {
-            throw new IllegalArgumentException("Medicine Product PackSize is required.");
+            throw new IllegalArgumentException("MEDICINE Product PackSize is required.");
         }
         if (req.getMedicineReturnPolicy() == null || req.getMedicineReturnPolicy().isEmpty()) {
-            throw new IllegalArgumentException("Medicine Product Return Policy is required.");
+            throw new IllegalArgumentException("MEDICINE Product Return Policy is required.");
         }
         if (req.getMedicineCompositionId() == null ) {
-            throw new IllegalArgumentException("Medicine Product Composition is required.");
+            throw new IllegalArgumentException("MEDICINE Product Composition is required.");
         }
         MedicineProduct medicineProduct=new MedicineProduct();
         medicineProduct.setProductName(req.getProductName());
@@ -165,10 +167,10 @@ public class MedicineProductServiceImpl implements MedicineProductService {
         createdMedicineProduct.setProductName(medicineProduct.getProductName());
         createdMedicineProduct.setProductManufacturer(medicineProduct.getProductManufacturer());
         createdMedicineProduct.setMedicineRx(medicineProduct.getMedicineRx());
-        createdMedicineProduct.setProductDosageForm(String.valueOf(medicineProduct.getProductDosageForm()));
+//        createdMedicineProduct.setProductDosageForm(String.valueOf(medicineProduct.getProductDosageForm()));
         createdMedicineProduct.setMedicinePackSize(medicineProduct.getMedicinePackSize());
         createdMedicineProduct.setMedicineReturnPolicy(medicineProduct.getMedicineReturnPolicy());
-        createdMedicineProduct.setMedicineComposition(medicineProduct.getMedicineComposition());
+//        createdMedicineProduct.setMedicineComposition(medicineProduct.getMedicineComposition());
 
 
         return createdMedicineProduct;
@@ -178,25 +180,25 @@ public class MedicineProductServiceImpl implements MedicineProductService {
     public MedicineProductResponseDTO updateMedicineProduct(MedicineProductDTO req, Long medicineId) throws Exception {
 
 //        if (req.getProductName() == null || req.getProductName().isEmpty()) {
-//            throw new IllegalArgumentException("Medicine Product name is required.");
+//            throw new IllegalArgumentException("MEDICINE Product name is required.");
 //        }
 //        if (req.getProductManufacturer() == null || req.getProductManufacturer().isEmpty()) {
-//            throw new IllegalArgumentException("Medicine Product manufacturer is required.");
+//            throw new IllegalArgumentException("MEDICINE Product manufacturer is required.");
 //        }
 //        if (req.getMedicineRx() == null) {
-//            throw new IllegalArgumentException("Medicine Product Field is required.");
+//            throw new IllegalArgumentException("MEDICINE Product Field is required.");
 //        }
 //        if (req.getProductDosageForm() == null || req.getProductDosageForm().isEmpty()) {
-//            throw new IllegalArgumentException("Medicine Product Dosage Form is required.");
+//            throw new IllegalArgumentException("MEDICINE Product Dosage Form is required.");
 //        }
 //        if (req.getMedicinePackSize() == null || req.getMedicinePackSize().isEmpty()) {
-//            throw new IllegalArgumentException("Medicine Product PackSize is required.");
+//            throw new IllegalArgumentException("MEDICINE Product PackSize is required.");
 //        }
 //        if (req.getMedicineReturnPolicy() == null || req.getMedicineReturnPolicy().isEmpty()) {
-//            throw new IllegalArgumentException("Medicine Product Return Policy is required.");
+//            throw new IllegalArgumentException("MEDICINE Product Return Policy is required.");
 //        }
 //        if (req.getMedicineCompositionId() == null ) {
-//            throw new IllegalArgumentException("Medicine Product Composition is required.");
+//            throw new IllegalArgumentException("MEDICINE Product Composition is required.");
 //        }
 
 
@@ -231,10 +233,10 @@ public class MedicineProductServiceImpl implements MedicineProductService {
         medicineProductResponseDTO.setProductName(toUpdateMedicine.getProductName());
         medicineProductResponseDTO.setProductManufacturer(toUpdateMedicine.getProductManufacturer());
         medicineProductResponseDTO.setMedicineRx(toUpdateMedicine.getMedicineRx());
-        medicineProductResponseDTO.setProductDosageForm(String.valueOf(toUpdateMedicine.getProductDosageForm()));
+//        medicineProductResponseDTO.setProductDosageForm(String.valueOf(toUpdateMedicine.getProductDosageForm()));
         medicineProductResponseDTO.setMedicinePackSize(toUpdateMedicine.getMedicinePackSize());
         medicineProductResponseDTO.setMedicineReturnPolicy(toUpdateMedicine.getMedicineReturnPolicy());
-        medicineProductResponseDTO.setMedicineComposition(toUpdateMedicine.getMedicineComposition());
+//        medicineProductResponseDTO.setMedicineComposition(toUpdateMedicine.getMedicineComposition());
 
 
 

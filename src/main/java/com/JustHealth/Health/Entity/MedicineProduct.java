@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@DiscriminatorValue("Medicine")
+@DiscriminatorValue("MEDICINE")
 //public class MedicineProduct extends Product
 public class MedicineProduct extends Product{
 
@@ -25,7 +25,6 @@ public class MedicineProduct extends Product{
     @Enumerated(EnumType.STRING)
     @Column(name = "medicine_dosage_form")
     private DosageForm productDosageForm;
-
 
     @Column(name = "medicine_pack_size")
     private String medicinePackSize;

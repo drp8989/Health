@@ -40,6 +40,9 @@ public class Batch {
     @Column(name = "batch_expiry")
     private LocalDate expiryDate;
 
+    @Column(name = "batch_margin")
+    private Float batchMargin;
+
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "inventory_batch_id")
 //    @ToString.Exclude

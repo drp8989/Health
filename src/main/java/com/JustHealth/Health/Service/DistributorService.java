@@ -30,14 +30,15 @@ public interface DistributorService {
 
 
     public DistributorResponseDTO createDistributor(DistributorDTO distributorDTO) throws Exception;
+
     public Distributor findById(Long id) throws Exception;
+
     public void deleteByDistributorId(Long id)throws Exception;
-
-
 
     public List<Distributor> getAllDistributor() throws Exception;
 
     public Page<Distributor> findDistributorsByName(String query,int page,int size);
+
     public Page<Distributor> findByDistributorGSTIN(String query,int page,int size);
 
 

@@ -17,6 +17,13 @@ public class InventoryDTO {
     private Integer minQTY;
     private Integer maxQTY;
     private Integer GST;
+
+    private Float defaultDiscount;
+
     private Long productId;
+
+    private Boolean lockDiscount;
+
+    private Boolean acceptOnlineOrder;
 
 }

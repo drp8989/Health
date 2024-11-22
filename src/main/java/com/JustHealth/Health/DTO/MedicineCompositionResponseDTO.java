@@ -8,6 +8,9 @@ import java.util.List;
 
 @Data
 public class MedicineCompositionResponseDTO {
+
+    private Long medicineCompositionId;
+
     private String medicineCompositionName;
 
     private String compositionTherapeuticClass;
@@ -20,6 +23,8 @@ public class MedicineCompositionResponseDTO {
 
     private String compositionExpertAdvice;
 
-    private List<MedicineFAQ> medicineFAQ;
+    private List<MedicineFAQResponseDTO> medicineFAQ;
+
+    private String slug;
 
 }

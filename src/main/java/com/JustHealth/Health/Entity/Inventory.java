@@ -38,7 +38,7 @@ public class Inventory {
     private Integer GST=0;
 
     @Column(name = "default_discount")
-    private Integer defaultDiscount;
+    private Float defaultDiscount=0.0f;
 
     @Column(name = "lock_discount")
     private Boolean lockDiscount;
@@ -46,18 +46,15 @@ public class Inventory {
     @Column(name = "accept_online_order")
     private Boolean acceptOnlineOrder;
 
+    //Averaging all the margins of the batches.
     @Column(name = "margin")
-    private Float margin;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "item_category")
-    private Category itemCategory;
+    private Float avgMargin;
 
     //Sum of all batch quantities.
     @Column(name = "current_stock")
     private Integer currentStock;
 
-//    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+
     @OneToOne
     @JoinColumn(name = "inventory_product_id")
     @ToString.Exclude
