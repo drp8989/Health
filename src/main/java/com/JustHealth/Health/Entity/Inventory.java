@@ -35,7 +35,7 @@ public class Inventory {
     private Integer maxQTY;
 
     @Column(name = "gst")
-    private Integer GST=0;
+    private Float GST= 0.0F;
 
     @Column(name = "default_discount")
     private Float defaultDiscount=0.0f;
@@ -68,9 +68,9 @@ public class Inventory {
     private List<Batch> inventoryBatch;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
     @JsonIgnore
-    private InventoryLedger inventoryLedger;
+    private List<InventoryLedger> inventoryLedger;
 
     public enum Category {
         TOPICAL_GEL,

@@ -18,7 +18,7 @@ public class InventoryResponseDTO {
     private String location;
     private Integer minQTY;
     private Integer maxQTY;
-    private Integer GST;
+    private Float GST;
     private Integer currentStock;
 //    private Product product;
 

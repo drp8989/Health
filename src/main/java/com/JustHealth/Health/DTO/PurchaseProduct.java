@@ -22,6 +22,6 @@ public class PurchaseProduct {
     private Integer discount;
     //To be Calculated
     private Float base;
-    private Integer gst;
+    private Float gst;
 
 }

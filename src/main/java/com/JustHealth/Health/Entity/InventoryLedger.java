@@ -38,6 +38,10 @@ public class InventoryLedger {
     @Column(name = "closing")
     private Integer closing;
 
+    @ManyToOne
+    @JoinColumn(name = "inventory_id") // Foreign key column in inventory_ledger table
+    private Inventory inventory;
+
 //    @Column(name = "user_detail")
 //    private String userDetail;
 

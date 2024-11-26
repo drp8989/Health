@@ -35,12 +35,17 @@ public class MedicineFAQ {
     private MedicineComposition medicineComposition;
 
 
+    //Constructor to initialize question and answer
+    public MedicineFAQ(String question, String answer) {
+        this.question = question;
+        this.answer = answer;
+    }
+
+
     @JsonBackReference
     public MedicineComposition getMedicineComposition() {
         return medicineComposition;
     }
-    public void setMedicineComposition(MedicineComposition medicineComposition) {
-        this.medicineComposition = medicineComposition;
-    }
+
 
 }

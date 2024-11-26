@@ -5,7 +5,6 @@ import com.JustHealth.Health.DTO.InventoryDTO;
 import com.JustHealth.Health.DTO.InventoryResponseDTO;
 import com.JustHealth.Health.Entity.*;
 import com.JustHealth.Health.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -14,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,6 +111,9 @@ public class InventoryServiceImpl implements InventoryService {
         if(req.getProductId()==null){
             throw new IllegalArgumentException("Inventory should be linked to a product");
         }
+        if (req.getBatch()==null){
+            throw new IllegalArgumentException("Batch should not be empty");
+        }
 
         Inventory createdInventory=new Inventory();
 
@@ -119,15 +123,42 @@ public class InventoryServiceImpl implements InventoryService {
         createdInventory.setMinQTY(req.getMinQTY());
         createdInventory.setMaxQTY(req.getMaxQTY());
         createdInventory.setGST(req.getGST());
+        //Assigning GST To a variable.
+        Float GST=req.getGST();
         createdInventory.setDefaultDiscount(req.getDefaultDiscount());
 
         //todo adding product reference and batch details and current stock which needs to be calculated
         createdInventory.setProduct(productService.findProductById(req.getProductId()));
         createdInventory.setLockDiscount(req.getLockDiscount());
         createdInventory.setAcceptOnlineOrder(req.getAcceptOnlineOrder());
-        //Margin is calculated on ptr rates and mrp;
-        // createdInventory.setMargin();
-        inventoryRepository.save(createdInventory);
+
+
+        //Add Batch into inventory
+        List<BatchDTO> batchDTOS=req.getBatch();
+        //For reference
+        List<Batch> toAddBatches=new ArrayList<>();
+        List<InventoryLedger> toAddLedgers=new ArrayList<>();
+        batchDTOS.forEach(batchDTO -> {
+            Batch batch=new Batch();
+            batch.setBatch(batchDTO.getBatch());
+            batch.setBatchPTR(batchDTO.getBatchPTR());
+            batch.setBatchMRP(batchDTO.getBatchMRP());
+            //LP is price is price+gst
+            Float LP=batchDTO.getBatchPTR()+((batchDTO.getBatchPTR()*GST)/100);
+            Float marginRS=batchDTO.getBatchMRP()-LP;
+            batch.setBatchLP(LP);
+            batch.setQuantityInStock(batchDTO.getQuantityInStock());
+            batch.setExpiryDate(batchDTO.getExpiryDate());
+            batch.setBatchMargin((marginRS/LP)*100);
+            batchRepository.save(batch);
+            toAddBatches.add(batch);
+
+        });
+        createdInventory.setInventoryBatch(toAddBatches);
+        Float avgMargin=calculateAVGmargins(toAddBatches);
+        Integer toAddQuantityStock=calculateQuantityinStock(toAddBatches);
+        createdInventory.setAvgMargin(avgMargin);
+        createdInventory.setCurrentStock(toAddQuantityStock);
 
         //Updating in ledger
         InventoryLedger inventoryLedger=new InventoryLedger();
@@ -136,17 +167,56 @@ public class InventoryServiceImpl implements InventoryService {
         inventoryLedger.setInventoryIn(0);
         inventoryLedger.setInventoryOut(0);
         inventoryLedger.setClosing(0);
-        inventoryLedgerRepository.save(inventoryLedger);
+        inventoryLedger.setInventory(createdInventory);
+
+        toAddLedgers.add(inventoryLedger);
+
+
+
+
+
+
+
+        AtomicInteger closing = new AtomicInteger(0);
+
+        //Inventory Ledger Entry for new batches
+        toAddBatches.forEach(batch -> {
+
+            InventoryLedger ledgerEntry = new InventoryLedger();
+            ledgerEntry.setEntryDate(LocalDateTime.now());
+            ledgerEntry.setLedgerTransaction("New Batch Added");
+            ledgerEntry.setInventoryIn(batch.getQuantityInStock());
+            ledgerEntry.setInventoryOut(0);
+            int updatedClosing = closing.addAndGet(batch.getQuantityInStock()); // Atomically add and get the updated value
+            // Set the closing value
+            ledgerEntry.setClosing(updatedClosing);
+//            ledgerEntry.setInventory(createdInventory);
+            inventoryLedgerRepository.save(ledgerEntry);
+            toAddLedgers.add(ledgerEntry);
+        });
+//        createdInventory.setInventoryLedger(toAddLedgers);
+        inventoryRepository.save(createdInventory);
+
+        toAddLedgers.stream().forEach(inventoryLedger1 -> {
+            inventoryLedger1.setInventory(createdInventory);
+            inventoryLedgerRepository.save(inventoryLedger1);
+        });
+
+        Inventory updateLedger=findById(createdInventory.getId());
+        updateLedger.setInventoryLedger(toAddLedgers);
 
         //setting the response
         InventoryResponseDTO inventoryResponseDTO=new InventoryResponseDTO();
         inventoryResponseDTO.setInventoryId(createdInventory.getId());
+        inventoryResponseDTO.setCurrentStock(createdInventory.getCurrentStock());
         inventoryResponseDTO.setReorderLevel(createdInventory.getReorderLevel());
         inventoryResponseDTO.setReorderQuantity(createdInventory.getReorderQuantity());
         inventoryResponseDTO.setLocation(createdInventory.getLocation());
         inventoryResponseDTO.setMinQTY(createdInventory.getMinQTY());
         inventoryResponseDTO.setMaxQTY(createdInventory.getMaxQTY());
         inventoryResponseDTO.setGST(createdInventory.getGST());
+        inventoryResponseDTO.setInventoryBatches(DTOHelper.convertToBatchResponseDTO(createdInventory.getInventoryBatch()));
+//        inventoryResponseDTO.setInventoryBatches();
 //        inventoryResponseDTO.setProduct(createdInventory.getProduct());
 
 
@@ -309,6 +379,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public Inventory addBatch(BatchDTO req) {
 
+
         Optional<Inventory> inventoryOpt = inventoryRepository.findById(Long.valueOf(req.getInventoryId()));
         if (inventoryOpt.isEmpty()) {
             throw new RuntimeException("Inventory not found for adding batch");
@@ -322,13 +393,14 @@ public class InventoryServiceImpl implements InventoryService {
             throw new RuntimeException("Batch already exists in inventory");
         }
 
-        Integer GST=inventory.getGST();
+        Float GST=inventory.getGST();
 
         // Create and set up the new batch
         Batch batch = new Batch();
         batch.setBatch(req.getBatch());
         batch.setBatchPTR(req.getBatchPTR());
         batch.setBatchMRP(req.getBatchMRP());
+        //LP is price is price+gst
         Float LP=req.getBatchPTR()+((req.getBatchPTR()*GST)/100);
         Float marginRS=req.getBatchMRP()-LP;
         batch.setBatchLP(LP);
@@ -341,7 +413,7 @@ public class InventoryServiceImpl implements InventoryService {
 
 
         //Setting the currentStock in Inventory
-        inventory.setCurrentStock(req.getQuantityInStock());
+        inventory.setCurrentStock(req.getQuantityInStock()+calculateQuantityinStock(inventory.getInventoryBatch()));
 
 
         // Add the new batch to the inventory
@@ -354,8 +426,19 @@ public class InventoryServiceImpl implements InventoryService {
 
         // Save the inventory (should cascade and save the batch as well if cascade settings are correct)
         inventoryRepository.save(inventory);
+        //Updating in ledger
+        InventoryLedger updateBatchData = new InventoryLedger();
+        updateBatchData.setEntryDate(LocalDateTime.now());
+        updateBatchData.setLedgerTransaction("New Batch Added");
+        updateBatchData.setInventoryIn(batch.getQuantityInStock());
+        updateBatchData.setInventoryOut(0);
+        // Set the closing value
+        updateBatchData.setClosing(inventory.getCurrentStock()+req.getQuantityInStock());
+        updateBatchData.setInventory(inventory);
+        inventoryLedgerRepository.save(updateBatchData);
         return inventory;
     }
+
 
 
 
@@ -488,7 +571,11 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     public Integer calculateQuantityinStock(List<Batch> batches){
-        return null;
+        AtomicInteger totalQuantity = new AtomicInteger(0);
+        batches.forEach(batch -> {
+            totalQuantity.addAndGet(batch.getQuantityInStock()); // Add batch quantity to total
+        });
+        return totalQuantity.get();
     }
 
 
@@ -566,6 +653,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
         return null;
     }
+
 
 
 

@@ -126,6 +126,7 @@ public class MedicineCompositionServiceImpl implements MedicineCompositionServic
 
         Page<MedicineCompositionResponseDTO> response = medicineCompositions.map(medicineComposition -> {
             MedicineCompositionResponseDTO dto = new MedicineCompositionResponseDTO();
+            dto.setMedicineCompositionId(medicineComposition.getId());
             dto.setMedicineCompositionName(medicineComposition.getMedicineCompositionName());
             dto.setCompositionTherapeuticClass(medicineComposition.getCompositionTherapeuticClass());
             dto.setCompositionUse(medicineComposition.getCompositionUse());
@@ -136,6 +137,7 @@ public class MedicineCompositionServiceImpl implements MedicineCompositionServic
             if (medicineComposition.getCompositionFAQ() != null) {
                 List<MedicineFAQResponseDTO> faqResponseDTOList = medicineComposition.getCompositionFAQ().stream().map(faq -> {
                     MedicineFAQResponseDTO faqDTO = new MedicineFAQResponseDTO();
+                    faqDTO.setId(faq.getId());
                     faqDTO.setQuestion(faq.getQuestion());
                     faqDTO.setAnswer(faq.getAnswer());
                     return faqDTO;

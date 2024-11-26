@@ -4,6 +4,7 @@ import com.JustHealth.Health.Entity.Product;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class InventoryDTO {
@@ -16,7 +17,7 @@ public class InventoryDTO {
 
     private Integer minQTY;
     private Integer maxQTY;
-    private Integer GST;
+    private Float GST;
 
     private Float defaultDiscount;
 
@@ -25,5 +26,7 @@ public class InventoryDTO {
     private Boolean lockDiscount;
 
     private Boolean acceptOnlineOrder;
+
+    private List<BatchDTO> batch;
 
 }

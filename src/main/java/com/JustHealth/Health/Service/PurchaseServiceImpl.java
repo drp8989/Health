@@ -193,7 +193,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             Float batchMRP = product.getBatchMRP();
             Float batchPTR = product.getBatchPTR();
             Integer productQTY = product.getProductInventoryQTY();
-            Integer gotgst = product.getGst();
+            Float gotgst = product.getGst();
             Integer discount = product.getDiscount();
 
             Inventory inventory = inventoryService.getInventoryFromProduct(productId);
