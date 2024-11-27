@@ -6,9 +6,13 @@ import com.github.slugify.Slugify;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class DataInitializer {
@@ -35,7 +39,7 @@ public class DataInitializer {
         this.slugify = new Slugify();  // Initialize Slugify
     }
 
-    @PostConstruct
+   @EventListener(ApplicationReadyEvent.class)
     public void init() {
         if (!initialized) {
             initialized = true;
@@ -139,11 +143,19 @@ public class DataInitializer {
             createMedicineProduct("Amoxicillin", "Amoxil", "TABLET", "500 mg", true, "No returns after opening", 4L, 2L, 1L);
             createMedicineProduct("Vitamin C", "Nature's Bounty", "TABLET", "60 Tablets", false, "Return within 30 days", 5L, 3L, 2L);
             createMedicineProduct("Multivitamins", "Centrum", "CAPSULE", "30 Capsules", false, "Return within 30 days", 6L, 3L, 3L);
-            createMedicineProduct("Antacid", "Tums", "CAPSULE", "150 Tablets", false, "Return within 30 days", 52L, 4L, 1L);
-            createMedicineProduct("Omega-3", "Fish Oil", "CAPSULE", "100 Softgels", false, "No returns after opening", 53L, 4L, 2L);
-            createMedicineProduct("Loperamide", "Imodium", "TABLET", "20 Tablets", true, "No returns after opening", 54L, 5L, 1L);
-            createMedicineProduct("Loratadine", "Claritin", "TABLET", "10 Tablets", false, "Return within 30 days", 55L, 5L, 2L);
+            createMedicineProduct("Antacid", "Tums", "CAPSULE", "150 Tablets", false, "Return within 30 days", 1L, 4L, 1L);
+            createMedicineProduct("Omega-3", "Fish Oil", "CAPSULE", "100 Softgels", false, "No returns after opening", 2L, 4L, 2L);
+            createMedicineProduct("Loperamide", "Imodium", "TABLET", "20 Tablets", true, "No returns after opening", 3L, 5L, 1L);
+            createMedicineProduct("Loratadine", "Claritin", "TABLET", "10 Tablets", false, "Return within 30 days", 4L, 5L, 2L);
         }
+    }
+
+    private long getMedicineCompositionId(Long id){
+        Optional<MedicineComposition> medicineComposition=medicineCompositionRepository.findById(id);
+        if(medicineComposition.isEmpty()){
+                throw new RuntimeException("Medicine Comppositoin Not Found");
+        }
+        return medicineComposition.get().getId();
     }
 
     private void createMedicineComposition(String name, String therapeuticClass, String use, String sideEffects,
