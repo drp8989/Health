@@ -145,6 +145,7 @@ public class MedicineCompositionServiceImpl implements MedicineCompositionServic
 
                 dto.setMedicineFAQ(faqResponseDTOList);
             }
+            dto.setSlug(medicineComposition.getSlug());
 
             return dto;
         });
